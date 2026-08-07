@@ -1,587 +1,635 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Ibersilos - Tachigrafo AC</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#E30613">
+<link rel="manifest" href="manifest.json">
+<title>Ibersilos — Tachigrafo AC</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-*{font-family:'DM Sans','Segoe UI',sans-serif;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'DM Sans','Segoe UI',sans-serif;-webkit-tap-highlight-color:transparent;}
 :root{
   --red:#E30613;--dark-red:#B8050F;
   --yellow:#FFD100;--black:#1A1A1A;
   --gray:#F5F5F5;--border:#E0E0E0;
   --green:#28a745;--text-dim:#666;
-  --shadow:0 2px 10px rgba(0,0,0,0.07);
-  --text:#1A1A1A;
   --mono:'IBM Plex Mono','Courier New',monospace;
 }
-html,body{height:100%;overflow:hidden;}
-body{background:var(--gray);color:var(--text);}
-.app-root{display:flex;flex-direction:column;height:100vh;}
-.app-body{display:flex;flex:1;overflow:hidden;}
+body{background:var(--gray);color:var(--black);overflow-x:hidden;}
+.container{max-width:480px;margin:0 auto;background:#fff;min-height:100vh;position:relative;box-shadow:0 0 30px rgba(0,0,0,0.12);}
 
-.app-header{background:#fff;border-bottom:4px solid var(--red);border-top:4px solid var(--yellow);padding:0 20px;height:64px;display:flex;align-items:center;gap:16px;flex-shrink:0;z-index:200;box-shadow:var(--shadow);}
-.header-divider{width:1px;height:28px;background:var(--border);}
-.header-label{font-size:0.7rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#bbb;}
-.header-spacer{flex:1;}
-.fb-pill{display:flex;align-items:center;gap:6px;background:var(--gray);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:0.7rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);}
-.fb-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);}
-.header-kpi{display:flex;gap:28px;}
-.kpi{text-align:center;}
-.kpi-val{font-size:1.3rem;font-weight:800;line-height:1;}
-.kpi-val.green{color:var(--green);}
-.kpi-val.yellow{color:#b8860b;}
-.kpi-val.red{color:var(--red);}
-.kpi-label{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#bbb;margin-top:2px;}
-.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--red),var(--yellow));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.8rem;color:white;cursor:pointer;flex-shrink:0;}
+/* ── SYNC BAR ── */
+.sync-bar{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;height:4px;z-index:10001;background:transparent;transition:all 0.3s;}
+.sync-bar.active{background:var(--yellow);animation:pulse-bar 1s infinite;}
+.sync-bar.ok{background:var(--green);}
+@keyframes pulse-bar{0%,100%{opacity:1}50%{opacity:0.5}}
 
-.sidebar{width:260px;background:white;border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;box-shadow:var(--shadow);}
-.nav-section{padding:10px 0;border-bottom:1px solid var(--border);}
-.nav-label{font-size:0.65rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#bbb;padding:4px 16px 8px;}
-.nav-item{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;border-left:3px solid transparent;font-size:0.88rem;font-weight:500;color:var(--text-dim);transition:all 0.15s;}
-.nav-item:hover{background:#fff5f5;color:var(--black);}
-.nav-item.active{background:#fff0f0;border-left-color:var(--red);color:var(--red);font-weight:700;}
-.nav-item svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+/* ── HEADER ── */
+.app-header{background:#fff;border-bottom:4px solid var(--red);border-top:4px solid var(--yellow);padding:14px 18px;box-shadow:0 2px 10px rgba(0,0,0,0.06);}
+.header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.header-logo{height:56px;width:auto;display:block;}
+.user-info{text-align:right;}
+.user-name{font-size:1rem;font-weight:700;}
+.card-badge{background:var(--yellow);color:var(--black);padding:6px 14px;border-radius:20px;font-size:0.88rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;}
+.card-badge svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
+.date-display{font-size:0.9rem;font-weight:600;color:var(--text-dim);}
 
-.driver-sidebar{padding:16px;margin-top:auto;border-top:1px solid var(--border);}
-.driver-box{background:var(--gray);border-radius:10px;padding:14px;border-left:3px solid var(--green);}
-.driver-box-name{font-size:0.88rem;font-weight:700;margin-bottom:2px;}
-.driver-box-sub{font-size:0.72rem;color:var(--text-dim);}
-.driver-box-status{display:flex;align-items:center;gap:7px;margin-top:10px;}
-.dot-green{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);flex-shrink:0;}
-.dot-yellow{width:8px;height:8px;border-radius:50%;background:var(--yellow);box-shadow:0 0 5px var(--yellow);flex-shrink:0;}
-.driver-box-status span{font-size:0.75rem;font-weight:700;}
+.alert-banner{background:var(--red);border:3px solid var(--yellow);border-radius:12px;padding:14px;margin-top:14px;text-align:center;}
+.alert-banner-num{font-size:2.5rem;font-weight:800;color:white;line-height:1;}
+.alert-banner-label{font-size:0.82rem;color:rgba(255,255,255,0.9);font-weight:600;margin-top:2px;}
+.alert-banner.ok{background:var(--green);border-color:#a5d6a7;}
 
-.content{flex:1;overflow-y:auto;padding:24px;}
-.content::-webkit-scrollbar{width:4px;}
-.content::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
-.panel{display:none;flex-direction:column;gap:20px;}
-.panel.active{display:flex;}
+/* ── NAV TABS ── */
+.nav-tabs{display:flex;background:white;border-bottom:3px solid var(--gray);position:sticky;top:0;z-index:100;}
+.nav-tab{flex:1;padding:12px 4px;text-align:center;background:none;border:none;font-size:0.78rem;color:var(--text-dim);cursor:pointer;font-weight:500;position:relative;transition:color 0.2s;}
+.nav-tab.active{color:var(--red);font-weight:700;}
+.nav-tab.active::after{content:'';position:absolute;bottom:-3px;left:15%;right:15%;height:4px;background:var(--red);border-radius:3px 3px 0 0;}
+.nav-tab-icon{display:block;margin:0 auto 3px;width:18px;height:18px;}
+.nav-tab-icon svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
 
-.card{background:white;border-radius:12px;padding:18px;box-shadow:var(--shadow);border-left:4px solid var(--red);}
+/* ── SECTIONS ── */
+.section{display:none;padding:18px;animation:fadeIn 0.25s;}
+.section.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── CARDS ── */
+.card{background:white;border-radius:12px;padding:16px;margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,0.07);border-left:4px solid var(--red);}
 .card.yellow{border-left-color:var(--yellow);}
 .card.green{border-left-color:var(--green);}
 .card.gray{border-left-color:var(--border);}
 .card.blue{border-left-color:#3949ab;}
-.card-title{font-size:0.82rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--red);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.card-title{font-size:0.88rem;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;text-transform:uppercase;color:var(--red);letter-spacing:0.3px;}
 .card-title.yellow{color:var(--black);}
 .card-title.green{color:var(--green);}
 .card-title.gray{color:var(--text-dim);}
 .card-title.blue{color:#3949ab;}
-.card-title svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;}
+.card-title svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
 
-.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
-.kpi-box{background:white;border-radius:12px;padding:16px 18px;box-shadow:var(--shadow);border-top:3px solid var(--border);}
+/* ── KPI GRID ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+.kpi-box{background:white;border-radius:12px;padding:14px 10px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.07);border-top:3px solid var(--border);}
 .kpi-box.red{border-top-color:var(--red);}
 .kpi-box.yellow{border-top-color:var(--yellow);}
 .kpi-box.green{border-top-color:var(--green);}
-.kpi-box-val{font-size:2rem;font-weight:800;line-height:1;margin-bottom:4px;}
+.kpi-box-val{font-size:2rem;font-weight:800;line-height:1;margin-bottom:3px;}
 .kpi-box-val.red{color:var(--red);}
 .kpi-box-val.yellow{color:#b8860b;}
 .kpi-box-val.green{color:var(--green);}
-.kpi-box-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#bbb;}
+.kpi-box-label{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#bbb;}
 
-.btn{padding:10px 20px;border-radius:8px;font-size:0.82rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border:none;transition:all 0.15s;display:inline-flex;align-items:center;gap:7px;}
-.btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5;}
-.btn-red{background:var(--red);color:white;box-shadow:0 3px 10px rgba(227,6,19,0.25);}
-.btn-red:hover{background:var(--dark-red);}
-.btn-ghost{background:white;color:var(--black);border:1px solid var(--border);}
-.btn-ghost:hover{border-color:var(--red);color:var(--red);}
-.btn-row{display:flex;gap:10px;flex-wrap:wrap;}
+/* ── BUTTONS ── */
+.btn-primary{width:100%;padding:17px;background:var(--red);color:white;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px;box-shadow:0 4px 14px rgba(227,6,19,0.3);transition:all 0.2s;text-transform:uppercase;letter-spacing:0.5px;}
+.btn-primary:active{transform:scale(0.98);}
+.btn-primary.yellow{background:var(--yellow);color:var(--black);box-shadow:0 4px 14px rgba(255,209,0,0.35);}
+.btn-primary.green{background:var(--green);box-shadow:0 4px 14px rgba(40,167,69,0.3);}
+.btn-primary svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
+.btn-secondary{width:100%;padding:13px;background:white;color:var(--black);border:2px solid var(--red);border-radius:8px;font-size:0.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:600;transition:all 0.2s;margin-bottom:10px;}
+.btn-secondary:active{background:#ffebee;}
+.btn-secondary svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
 
-.tbl{width:100%;border-collapse:collapse;font-size:0.84rem;}
-.tbl th{font-size:0.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#bbb;padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);}
-.tbl td{padding:10px 12px;border-bottom:1px solid var(--gray);vertical-align:middle;}
-.tbl tr:last-child td{border-bottom:none;}
-.tbl tr:hover td{background:#fafafa;}
-.mono{font-family:var(--mono);font-size:0.8rem;font-weight:600;}
-.lbl{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#bbb;}
-
-.pill{display:inline-flex;align-items:center;padding:3px 10px;border-radius:12px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;}
+/* ── PILLS ── */
+.pill{display:inline-flex;align-items:center;padding:3px 10px;border-radius:12px;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;}
 .pill-ok{background:#e8f5e9;color:#2e7d32;}
 .pill-warn{background:#fff8e1;color:#b8860b;}
 .pill-err{background:#ffebee;color:var(--red);}
 .pill-off{background:var(--gray);color:#999;}
 .pill-blue{background:#e8eaf6;color:#3949ab;}
 
-.prog-wrap{background:var(--gray);border-radius:4px;height:6px;overflow:hidden;margin-top:6px;}
+/* ── PROGRESS ── */
+.prog-wrap{background:var(--gray);border-radius:4px;height:7px;overflow:hidden;margin-top:6px;}
 .prog-bar{height:100%;border-radius:4px;}
-.prog-bar.green{background:var(--green);}
-.prog-bar.yellow{background:var(--yellow);}
 .prog-bar.red{background:var(--red);}
+.prog-bar.yellow{background:var(--yellow);}
+.prog-bar.green{background:var(--green);}
+.lbl{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#bbb;}
 
-.comp-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--gray);}
-.comp-row:last-child{border-bottom:none;}
-.comp-label{font-size:0.82rem;font-weight:600;flex:1;}
-.comp-val{font-family:var(--mono);font-size:0.85rem;font-weight:700;min-width:70px;text-align:right;}
+/* ── TABLE ── */
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.tbl{width:100%;border-collapse:collapse;font-size:0.84rem;min-width:360px;}
+.tbl th{font-size:0.63rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#bbb;padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);}
+.tbl td{padding:10px 10px;border-bottom:1px solid var(--gray);vertical-align:middle;}
+.tbl tr:last-child td{border-bottom:none;}
+.mono{font-family:var(--mono);font-size:0.78rem;font-weight:600;}
 
-.data-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
-.data-cell{background:var(--gray);border-radius:8px;padding:10px 14px;}
+/* ── DATA GRID ── */
+.data-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
+.data-cell{background:var(--gray);border-radius:8px;padding:10px 12px;}
 .data-cell.full{grid-column:1/-1;}
-.dc-lbl{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#bbb;margin-bottom:4px;}
-.dc-val{font-family:var(--mono);font-size:0.78rem;font-weight:600;word-break:break-all;}
+.dc-lbl{font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#bbb;margin-bottom:4px;}
+.dc-val{font-family:var(--mono);font-size:0.76rem;font-weight:600;word-break:break-all;}
 .dc-val.green{color:var(--green);}
 .dc-val.yellow{color:#b8860b;}
-.dc-val.big{font-family:'DM Sans',sans-serif;font-size:1.05rem;font-weight:800;}
+.dc-val.big{font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:800;}
 
-.reader-box{background:white;border-radius:12px;padding:28px 24px;box-shadow:var(--shadow);border:2px dashed var(--border);text-align:center;transition:all 0.3s;}
+/* ── READER BOX ── */
+.reader-box{border:2px dashed var(--border);border-radius:12px;padding:24px 16px;text-align:center;transition:all 0.3s;margin-bottom:14px;}
 .reader-box.connected{border:2px solid var(--green);background:#f8fff9;}
 .reader-box.reading{border:2px solid var(--yellow);background:#fffdf0;animation:rpulse 1.5s infinite;}
-@keyframes rpulse{0%,100%{box-shadow:0 0 0 0 rgba(255,209,0,0.4);}50%{box-shadow:0 0 0 10px rgba(255,209,0,0);}}
-.reader-icon{width:60px;height:60px;margin:0 auto 14px;border-radius:12px;background:var(--gray);display:flex;align-items:center;justify-content:center;}
-.reader-icon svg{width:30px;height:30px;stroke:var(--text-dim);fill:none;stroke-width:1.5;}
+@keyframes rpulse{0%,100%{box-shadow:0 0 0 0 rgba(255,209,0,0.4)}50%{box-shadow:0 0 0 10px rgba(255,209,0,0)}}
+.reader-icon{width:52px;height:52px;margin:0 auto 12px;border-radius:12px;background:var(--gray);display:flex;align-items:center;justify-content:center;}
+.reader-icon svg{width:24px;height:24px;stroke:var(--text-dim);fill:none;stroke-width:1.5;}
 .reader-box.connected .reader-icon{background:#e8f5e9;}
 .reader-box.connected .reader-icon svg{stroke:var(--green);}
 .reader-box.reading .reader-icon svg{stroke:#b8860b;}
-.reader-title{font-size:1rem;font-weight:700;margin-bottom:6px;}
-.reader-sub{font-size:0.82rem;color:var(--text-dim);margin-bottom:18px;}
+.reader-title{font-size:0.95rem;font-weight:700;margin-bottom:5px;}
+.reader-sub{font-size:0.8rem;color:var(--text-dim);margin-bottom:16px;}
 
-.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
-.filter-bar{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
-.filter-btn{padding:6px 14px;background:white;border:1px solid var(--border);border-radius:20px;font-size:0.75rem;font-weight:700;cursor:pointer;transition:all 0.15s;}
-.filter-btn:hover{border-color:var(--red);color:var(--red);}
+/* ── COMPLIANCE ── */
+.comp-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--gray);}
+.comp-row:last-child{border-bottom:none;}
+.comp-label{font-size:0.82rem;font-weight:600;flex:1;min-width:0;}
+.comp-val{font-family:var(--mono);font-size:0.82rem;font-weight:700;min-width:55px;text-align:right;}
+
+/* ── FILTER BAR ── */
+.filter-bar{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+.filter-btn{padding:7px 14px;background:white;border:1.5px solid var(--border);border-radius:20px;font-size:0.75rem;font-weight:700;cursor:pointer;transition:all 0.15s;}
 .filter-btn.active{background:var(--red);border-color:var(--red);color:white;}
 
-.toast{position:fixed;bottom:24px;right:24px;background:var(--black);color:white;padding:12px 20px;border-radius:10px;font-size:0.84rem;font-weight:600;z-index:9999;display:none;box-shadow:0 4px 20px rgba(0,0,0,0.3);}
+/* ── TOAST ── */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--black);color:white;padding:12px 20px;border-radius:10px;font-size:0.84rem;font-weight:600;z-index:9999;display:none;box-shadow:0 4px 20px rgba(0,0,0,0.3);white-space:nowrap;max-width:90vw;text-overflow:ellipsis;overflow:hidden;}
+
+/* ── INFO ROW ── */
+.info-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--gray);font-size:0.88rem;}
+.info-row:last-child{border-bottom:none;}
+.info-key{color:var(--text-dim);}
+.info-val{font-weight:600;text-align:right;}
+
+/* ── NORM BOXES ── */
+.norm-row{display:flex;flex-direction:column;gap:8px;}
+.norm-box{background:var(--gray);border-radius:10px;padding:14px;}
+.norm-box-num{font-size:1.8rem;font-weight:800;color:#3949ab;line-height:1;margin-bottom:3px;}
+.norm-box-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-dim);}
+.norm-box-ref{font-size:0.65rem;color:#3949ab;font-weight:700;margin-top:3px;}
 </style>
 </head>
 <body>
-<div class="app-root">
 
-  <header class="app-header">
-    <img src="logo.jpg" alt="Ibersilos" style="height:52px;width:auto;display:block;">
-    <div class="header-divider"></div>
-    <div class="header-label">Tachigrafo</div>
-    <div class="header-spacer"></div>
-    <div class="fb-pill">
-      <div class="fb-dot"></div>
-      <span>PC/SC Live</span>
+<div class="sync-bar ok" id="syncBar"></div>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="app-header">
+    <div class="header-top">
+      <img src="logo.jpg" alt="Ibersilos" class="header-logo">
+      <div class="user-info">
+        <div class="user-name">Alessandro Chiarin</div>
+        <div style="font-size:0.72rem;font-family:var(--mono);color:var(--text-dim);margin-top:2px;">HD562HG &nbsp;·&nbsp; AC</div>
+      </div>
     </div>
-    <div style="width:8px;"></div>
-    <div class="header-kpi">
-      <div class="kpi"><div class="kpi-val green">3</div><div class="kpi-label">Scarichi</div></div>
-      <div class="kpi"><div class="kpi-val red">0</div><div class="kpi-label">Gg limite scheda</div></div>
-      <div class="kpi"><div class="kpi-val green">0</div><div class="kpi-label">Infrazioni</div></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+      <div class="card-badge">
+        <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        Scheda tachigrafica
+      </div>
+      <div class="date-display" id="dateDisplay"></div>
     </div>
-    <div class="avatar">AC</div>
-  </header>
-
-  <div class="app-body">
-
-    <aside class="sidebar">
-      <div class="nav-section">
-        <div class="nav-label">Navigazione</div>
-        <div class="nav-item active" id="tab-stato" onclick="switchPanel('stato')">
-          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-          Stato scarichi
-        </div>
-        <div class="nav-item" id="tab-scheda" onclick="switchPanel('scheda')">
-          <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-          Scheda conducente
-        </div>
-        <div class="nav-item" id="tab-vu" onclick="switchPanel('vu')">
-          <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><polyline points="8 21 12 17 16 21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-          Unita di bordo
-        </div>
-        <div class="nav-item" id="tab-storico" onclick="switchPanel('storico')">
-          <svg viewBox="0 0 24 24"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 1 .5 4m-3.55 5 3-3-3-3"/></svg>
-          Storico scarichi
-        </div>
-        <div class="nav-item" id="tab-compliance" onclick="switchPanel('compliance')">
-          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          EU 561/2006
-        </div>
-      </div>
-
-      <div class="driver-sidebar">
-        <div class="nav-label" style="padding:0 0 8px;">Conducente</div>
-        <div class="driver-box">
-          <div class="driver-box-name">Alessandro Chiarin</div>
-          <div class="driver-box-sub" style="font-family:var(--mono);">HD562HG &nbsp;Â·&nbsp; AC</div>
-          <div class="driver-box-sub" style="margin-top:2px;">Volvo FH500 â€” IBS</div>
-          <div class="driver-box-status">
-            <div class="dot-green" style="background:var(--red);box-shadow:0 0 5px var(--red);"></div>
-            <span style="color:var(--red);">Scheda: SCARICO IMMEDIATO</span>
-          </div>
-        </div>
-      </div>
-    </aside>
-
-    <main class="content">
-
-      <!-- STATO -->
-      <div class="panel active" id="panel-stato">
-        <div class="kpi-row">
-          <div class="kpi-box yellow">
-            <div class="kpi-box-val yellow" id="kpiGiorni">7</div>
-            <div class="kpi-box-label">Giorni al limite scheda</div>
-          </div>
-          <div class="kpi-box green">
-            <div class="kpi-box-val green">3</div>
-            <div class="kpi-box-label">Scarichi effettuati</div>
-          </div>
-          <div class="kpi-box green">
-            <div class="kpi-box-val green">0</div>
-            <div class="kpi-box-label">Infrazioni EU 561</div>
-          </div>
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-          <!-- SCHEDA CONDUCENTE -->
-          <div class="card yellow">
-            <div class="card-title yellow">
-              <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-              Scheda conducente â€” AC
-            </div>
-            <table class="tbl">
-              <tbody>
-                <tr><td class="lbl">Titolare</td><td><strong>Alessandro Chiarin</strong></td></tr>
-                <tr><td class="lbl">Ultimo scarico</td><td>10/07/2026</td></tr>
-                <tr><td class="lbl">Scadenza obbligo</td><td><strong style="color:#b8860b;" id="scadScheda">07/08/2026 â€” 0 giorni</strong></td></tr>
-                <tr><td class="lbl">Frequenza max</td><td>28 giorni â€” <span style="color:#3949ab;font-size:0.75rem;">Reg. (UE) 581/2010 Art. 1(3)(b)</span></td></tr>
-                <tr><td class="lbl">Conservazione dati</td><td>min. 365 giorni â€” <span style="color:#3949ab;font-size:0.75rem;">Reg. (UE) 165/2014 Art. 33(2)</span></td></tr>
-              </tbody>
-            </table>
-            <div style="margin-top:12px;">
-              <div class="lbl" style="margin-bottom:4px;">Giorni trascorsi dall'ultimo scarico</div>
-              <div class="prog-wrap" style="height:8px;"><div class="prog-bar red" style="width:100%;" id="progScheda"></div></div>
-              <div style="font-size:0.75rem;color:var(--red);font-weight:700;margin-top:4px;" id="progSchedaLbl">28 / 28 giorni â€” SCARICO IMMEDIATO</div>
-            </div>
-            <div style="margin-top:14px;" class="btn-row">
-              <button class="btn btn-red" onclick="switchPanel('scheda')">
-                <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-                Scarica scheda ora
-              </button>
-            </div>
-          </div>
-
-          <!-- UNITA DI BORDO -->
-          <div class="card gray">
-            <div class="card-title gray">
-              <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><polyline points="8 21 12 17 16 21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-              Unita di bordo â€” HD562HG
-            </div>
-            <table class="tbl">
-              <tbody>
-                <tr><td class="lbl">Veicolo</td><td><strong>Volvo FH500</strong></td></tr>
-                <tr><td class="lbl">Targa</td><td><span class="mono">HD562HG</span></td></tr>
-                <tr><td class="lbl">In servizio dal</td><td>07/07/2026</td></tr>
-                <tr><td class="lbl">Primo scarico VU entro</td><td><strong>05/10/2026</strong></td></tr>
-                <tr><td class="lbl">Frequenza max</td><td>90 giorni â€” <span style="color:#3949ab;font-size:0.75rem;">Reg. (UE) 581/2010 Art. 1(3)(a)</span></td></tr>
-              </tbody>
-            </table>
-            <div style="margin-top:12px;">
-              <div class="lbl" style="margin-bottom:4px;">Giorni trascorsi dall'attivazione</div>
-              <div class="prog-wrap" style="height:8px;"><div class="prog-bar green" style="width:34%;"></div></div>
-              <div style="font-size:0.75rem;color:var(--green);font-weight:700;margin-top:4px;">31 / 90 giorni â€” 59 giorni rimanenti</div>
-            </div>
-            <div style="margin-top:14px;" class="btn-row">
-              <button class="btn btn-ghost" onclick="switchPanel('vu')">
-                <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><polyline points="8 21 12 17 16 21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-                Scarica unita
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- RIEPILOGO NORMATIVO -->
-        <div class="card blue">
-          <div class="card-title blue">
-            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            Obblighi normativi â€” Reg. (UE) 581/2010 + 165/2014
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;font-size:0.82rem;">
-            <div style="background:var(--gray);border-radius:8px;padding:12px;">
-              <div class="lbl" style="margin-bottom:6px;">Scheda conducente</div>
-              <div style="font-size:1.4rem;font-weight:800;color:#3949ab;line-height:1;">28 gg</div>
-              <div style="font-size:0.72rem;color:var(--text-dim);margin-top:4px;">scarico max ogni 28 giorni</div>
-              <div style="font-size:0.68rem;color:#3949ab;margin-top:4px;font-weight:700;">Reg. 581/2010 Art. 1(3)(b)</div>
-            </div>
-            <div style="background:var(--gray);border-radius:8px;padding:12px;">
-              <div class="lbl" style="margin-bottom:6px;">Unita di bordo (VU)</div>
-              <div style="font-size:1.4rem;font-weight:800;color:#3949ab;line-height:1;">90 gg</div>
-              <div style="font-size:0.72rem;color:var(--text-dim);margin-top:4px;">scarico max ogni 90 giorni</div>
-              <div style="font-size:0.68rem;color:#3949ab;margin-top:4px;font-weight:700;">Reg. 581/2010 Art. 1(3)(a)</div>
-            </div>
-            <div style="background:var(--gray);border-radius:8px;padding:12px;">
-              <div class="lbl" style="margin-bottom:6px;">Conservazione dati</div>
-              <div style="font-size:1.4rem;font-weight:800;color:#3949ab;line-height:1;">365 gg</div>
-              <div style="font-size:0.72rem;color:var(--text-dim);margin-top:4px;">minimo 1 anno (impresa)</div>
-              <div style="font-size:0.68rem;color:#3949ab;margin-top:4px;font-weight:700;">Reg. 165/2014 Art. 33(2)</div>
-            </div>
-          </div>
-          <div style="margin-top:12px;padding:10px 14px;background:#e8eaf6;border-radius:8px;font-size:0.78rem;color:#3949ab;font-weight:600;line-height:1.5;">
-            L'impresa (Ibersilos SLU) e' responsabile dello scarico. Il conducente e' tenuto a presentare la scheda. Sanzioni: LOTT artt. 140-142 + Baremo Sancionador RD 5.0 (vigente dal 20/01/2020).
-          </div>
-        </div>
-      </div>
-
-      <!-- SCHEDA CONDUCENTE -->
-      <div class="panel" id="panel-scheda">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-          <div>
-            <div class="reader-box connected" id="readerBox">
-              <div class="reader-icon">
-                <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-              </div>
-              <div class="reader-title" id="readerTitle">Lettore pronto</div>
-              <div class="reader-sub" id="readerSub">ACS ACR122U â€” Porta 0</div>
-              <div class="btn-row" style="justify-content:center;margin-bottom:4px;">
-                <button class="btn btn-red" onclick="simRead()" style="background:var(--green);box-shadow:0 3px 10px rgba(40,167,69,0.25);">
-                  <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-                  Leggi scheda
-                </button>
-                <button class="btn btn-ghost" onclick="ejectCard()">Espelli</button>
-              </div>
-            </div>
-            <div class="card" style="margin-top:14px;">
-              <div class="card-title gray">
-                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                Hardware
-              </div>
-              <div style="display:flex;flex-direction:column;gap:8px;font-size:0.82rem;">
-                <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--gray);padding-bottom:8px;"><span class="lbl">Lettore</span><span>ACS ACR122U</span></div>
-                <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--gray);padding-bottom:8px;"><span class="lbl">Standard</span><span>PC/SC â€” ISO 7816</span></div>
-                <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--gray);padding-bottom:8px;"><span class="lbl">Protocollo</span><span>T=1</span></div>
-                <div style="display:flex;justify-content:space-between;"><span class="lbl">Tachografo</span><span>VDO DTCO Gen 2</span></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="card green">
-            <div class="card-title green">
-              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-              Scheda â€” Alessandro Chiarin
-            </div>
-            <div class="data-grid">
-              <div class="data-cell">
-                <div class="dc-lbl">Tipo scheda</div>
-                <div class="dc-val big">CONDUCENTE</div>
-              </div>
-              <div class="data-cell">
-                <div class="dc-lbl">Auth ECC</div>
-                <div class="dc-val yellow">In attesa</div>
-              </div>
-              <div class="data-cell full">
-                <div class="dc-lbl">ATR</div>
-                <div class="dc-val">3B F8 96 00 00 80 31 FE 47 00 73 C8 40 00 00 90 00 0D</div>
-              </div>
-              <div class="data-cell full">
-                <div class="dc-lbl">AID selezionato</div>
-                <div class="dc-val">FF 54 41 43 48 4F <span style="color:#bbb;font-weight:400;font-family:'DM Sans',sans-serif;">(VDO/Continental)</span></div>
-              </div>
-              <div class="data-cell">
-                <div class="dc-lbl">EF C100 Card Cert</div>
-                <div class="dc-val green">194 byte OK</div>
-              </div>
-              <div class="data-cell">
-                <div class="dc-lbl">EF C108 CA Cert</div>
-                <div class="dc-val green">194 byte OK</div>
-              </div>
-            </div>
-            <div style="margin-top:14px;" class="btn-row">
-              <button class="btn btn-red" onclick="showToast('Auth ECC + scarico dati conducente â€” in sviluppo v1.0')">
-                <svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
-                Scarica dati conducente
-              </button>
-              <button class="btn btn-ghost" onclick="showToast('Certificati esportati in formato PEM')">Esporta cert.</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- UNITA DI BORDO -->
-      <div class="panel" id="panel-vu">
-        <div class="card yellow">
-          <div class="card-title yellow">
-            <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><polyline points="8 21 12 17 16 21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-            Unita di bordo â€” HD562HG / Volvo FH500
-          </div>
-          <div style="border:2px dashed var(--border);border-radius:10px;padding:32px;text-align:center;cursor:pointer;transition:border-color 0.2s;"
-               onmouseover="this.style.borderColor='var(--red)'"
-               onmouseout="this.style.borderColor='var(--border)'"
-               onclick="showToast('Collegare HD562HG via USB o selezionare file .ddd')">
-            <svg viewBox="0 0 24 24" style="width:40px;height:40px;stroke:#ccc;fill:none;stroke-width:1.5;margin-bottom:12px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            <div style="font-weight:700;font-size:0.95rem;margin-bottom:4px;">Trascina file .ddd qui</div>
-            <div style="font-size:0.8rem;color:var(--text-dim);">oppure clicca per selezionare â€” VDO DTCO 4.0 / 3.3 / 2.0</div>
-          </div>
-        </div>
-        <div class="card gray">
-          <div class="card-title gray">
-            <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-            Stato scarico VU
-          </div>
-          <table class="tbl">
-            <thead><tr><th>Veicolo</th><th>Targa</th><th>In servizio dal</th><th>Primo scarico entro</th><th>Stato</th></tr></thead>
-            <tbody>
-              <tr>
-                <td><strong>Volvo FH500</strong></td>
-                <td><span class="mono">HD562HG</span></td>
-                <td>07/07/2026</td>
-                <td>05/10/2026</td>
-                <td><span class="pill pill-off">Da scaricare</span></td>
-              </tr>
-            </tbody>
-          </table>
-          <div style="margin-top:14px;padding:10px 14px;background:#fff8e1;border-radius:8px;font-size:0.8rem;color:#b8860b;font-weight:600;">
-            Tachografo operativo dal 07/07/2026 â€” primo scarico VU obbligatorio entro 90 giorni (05/10/2026). Tempo rimanente: 59 giorni.
-          </div>
-        </div>
-      </div>
-
-      <!-- STORICO -->
-      <div class="panel" id="panel-storico">
-        <div class="card">
-          <div class="section-hdr">
-            <div class="card-title" style="margin-bottom:0;">
-              <svg viewBox="0 0 24 24"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 1 .5 4m-3.55 5 3-3-3-3"/></svg>
-              Storico â€” Alessandro Chiarin / HD562HG
-            </div>
-            <button class="btn btn-ghost" onclick="showToast('Export CSV scaricato')">
-              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Esporta CSV
-            </button>
-          </div>
-          <div class="filter-bar" style="margin-top:14px;">
-            <button class="filter-btn active" onclick="filterSt(this,'tutti')">Tutti</button>
-            <button class="filter-btn" onclick="filterSt(this,'scheda')">Scheda conducente</button>
-            <button class="filter-btn" onclick="filterSt(this,'vu')">Unita di bordo</button>
-          </div>
-          <table class="tbl">
-            <thead><tr><th>Data/Ora</th><th>Tipo</th><th>Periodo coperto</th><th>Attivita</th><th>Infrazioni</th><th>File</th></tr></thead>
-            <tbody id="storicoBody">
-              <tr data-tipo="scheda">
-                <td>07/08/2026 08:14</td>
-                <td><span class="pill pill-blue">SCHEDA</span></td>
-                <td>10/06 â€“ 07/08/2026</td><td>42</td>
-                <td style="color:var(--green);font-weight:700;">0</td>
-                <td><a href="#" style="color:var(--red);font-weight:700;font-size:0.8rem;text-decoration:none;" onclick="showToast('Download AC_20260807.ddd')">DDD</a></td>
-              </tr>
-              <tr data-tipo="scheda">
-                <td>10/06/2026 14:30</td>
-                <td><span class="pill pill-blue">SCHEDA</span></td>
-                <td>13/05 â€“ 10/06/2026</td><td>38</td>
-                <td style="color:var(--green);font-weight:700;">0</td>
-                <td><a href="#" style="color:var(--red);font-weight:700;font-size:0.8rem;text-decoration:none;" onclick="showToast('Download AC_20260610.ddd')">DDD</a></td>
-              </tr>
-              <tr data-tipo="scheda">
-                <td>13/05/2026 09:05</td>
-                <td><span class="pill pill-blue">SCHEDA</span></td>
-                <td>15/04 â€“ 13/05/2026</td><td>31</td>
-                <td style="color:var(--green);font-weight:700;">0</td>
-                <td><a href="#" style="color:var(--red);font-weight:700;font-size:0.8rem;text-decoration:none;" onclick="showToast('Download AC_20260513.ddd')">DDD</a></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- EU 561 COMPLIANCE -->
-      <div class="panel" id="panel-compliance">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-          <div class="card">
-            <div class="card-title">
-              <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-              Ore guida â€” settimana corrente (AC)
-            </div>
-            <canvas id="chartOre" style="width:100%;max-height:200px;"></canvas>
-            <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
-              <div style="background:#e8f5e9;border-radius:6px;padding:4px 10px;font-size:0.72rem;font-weight:700;color:#2e7d32;">Tot. settimana: 35h / 56h max</div>
-              <div style="background:#e8f5e9;border-radius:6px;padding:4px 10px;font-size:0.72rem;font-weight:700;color:#2e7d32;">Guida est. usata: 0 / 2 giorni</div>
-            </div>
-          </div>
-
-          <div class="card blue">
-            <div class="card-title blue">
-              <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-              Limiti Reg. (CE) 561/2006 â€” Alessandro Chiarin
-            </div>
-
-            <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#bbb;margin-bottom:8px;">GUIDA</div>
-            <div class="comp-row">
-              <div class="comp-label">Giornaliera normale (max <strong>9h</strong>)<br><span style="font-size:0.72rem;color:#bbb;">Art. 6(1) â€” estesa 10h max 2x/sett.</span></div>
-              <div style="flex:1"><div class="prog-wrap"><div class="prog-bar green" style="width:72%;"></div></div></div>
-              <div class="comp-val" style="color:var(--green);">6.5h</div>
-            </div>
-            <div class="comp-row">
-              <div class="comp-label">Settimanale (max <strong>56h</strong>)<br><span style="font-size:0.72rem;color:#bbb;">Art. 6(2)</span></div>
-              <div style="flex:1"><div class="prog-wrap"><div class="prog-bar green" style="width:63%;"></div></div></div>
-              <div class="comp-val" style="color:var(--green);">35h</div>
-            </div>
-            <div class="comp-row">
-              <div class="comp-label">Bisettimanale (max <strong>90h</strong>)<br><span style="font-size:0.72rem;color:#bbb;">Art. 6(3)</span></div>
-              <div style="flex:1"><div class="prog-wrap"><div class="prog-bar green" style="width:60%;"></div></div></div>
-              <div class="comp-val" style="color:var(--green);">54h</div>
-            </div>
-            <div class="comp-row">
-              <div class="comp-label">Continuata (max <strong>4h30</strong>)<br><span style="font-size:0.72rem;color:#bbb;">Art. 7 â€” poi 45 min pausa (o 15+30)</span></div>
-              <div style="flex:1"><div class="prog-wrap"><div class="prog-bar green" style="width:66%;"></div></div></div>
-              <div class="comp-val" style="color:var(--green);">3h</div>
-            </div>
-
-            <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#bbb;margin:12px 0 8px;">RIPOSO</div>
-            <div class="comp-row">
-              <div class="comp-label">Riposo giornaliero normale (<strong>min 11h</strong>)<br><span style="font-size:0.72rem;color:#bbb;">Art. 8(1) â€” ridotto 9h, max 3x/periodo</span></div>
-              <div class="comp-val" style="color:var(--green);">11h âœ“</div>
-            </div>
-            <div class="comp-row">
-              <div class="comp-label">Riposo settimanale normale (<strong>min 45h</strong>)<br><span style="font-size:0.72rem;color:#bbb;">Art. 8(6) â€” ridotto 24h, comp. entro 3 sett.</span></div>
-              <div class="comp-val" style="color:var(--green);">45h âœ“</div>
-            </div>
-
-            <div style="margin-top:14px;padding:10px 14px;background:#e8f5e9;border-radius:8px;font-size:0.8rem;color:#2e7d32;font-weight:700;">
-              Nessuna infrazione nell'ultimo periodo scaricato (10/07 â€“ 07/08/2026).
-            </div>
-          </div>
-        </div>
-
-        <!-- TABELLA RIFERIMENTI NORMATIVI -->
-        <div class="card gray">
-          <div class="card-title gray">
-            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            Riferimenti normativi completi
-          </div>
-          <table class="tbl">
-            <thead><tr><th>Parametro</th><th>Valore</th><th>Base legale</th></tr></thead>
-            <tbody>
-              <tr><td>Scarico scheda conducente</td><td><strong>max 28 giorni</strong></td><td class="mono" style="font-size:0.72rem;">Reg. (UE) 581/2010 Art. 1(3)(b)</td></tr>
-              <tr><td>Scarico unita di bordo (VU)</td><td><strong>max 90 giorni</strong></td><td class="mono" style="font-size:0.72rem;">Reg. (UE) 581/2010 Art. 1(3)(a)</td></tr>
-              <tr><td>Conservazione dati impresa</td><td><strong>min 365 giorni</strong></td><td class="mono" style="font-size:0.72rem;">Reg. (UE) 165/2014 Art. 33(2)</td></tr>
-              <tr><td>Guida giornaliera normale</td><td><strong>max 9h</strong></td><td class="mono" style="font-size:0.72rem;">Reg. (CE) 561/2006 Art. 6(1)</td></tr>
-              <tr><td>Guida giornaliera estesa</td><td><strong>max 10h</strong> (2x/sett.)</td><td class="mono" style="font-size:0.72rem;">Reg. (CE) 561/2006 Art. 6(1)</td></tr>
-              <tr><td>Guida settimanale</td><td><strong>max 56h</strong></td><td class="mono" style="font-size:0.72rem;">Reg. (CE) 561/2006 Art. 6(2)</td></tr>
-              <tr><td>Guida bisettimanale</td><td><strong>max 90h</strong></td><td class="mono" style="font-size:0.72rem;">Reg. (CE) 561/2006 Art. 6(3)</td></tr>
-              <tr><td>Guida continuata</td><td><strong>max 4h30</strong> (270 min)</td><td class="mono" style="font-size:0.72rem;">Reg. (CE) 561/2006 Art. 7</td></tr>
-              <tr><td>Pausa dopo guida continuata</td><td><strong>45 min</strong> (o 15+30)</td><td class="mono" style="font-size:0.72rem;">Reg. (CE) 561/2006 Art. 7</td></tr>
-              <tr><td>Riposo giornaliero normale</td><td><strong>min 11h</strong></td><td class="mono" style="font-size:0.72rem;">Reg. (CE) 561/2006 Art. 8(1)</td></tr>
-              <tr><td>Riposo giornaliero ridotto</td><td><strong>min 9h</strong> (max 3x/periodo)</td><td class="mono" style="font-size:0.72rem;">Reg. (CE) 561/2006 Art. 8(1)</td></tr>
-              <tr><td>Riposo settimanale normale</td><td><strong>min 45h</strong></td><td class="mono" style="font-size:0.72rem;">Reg. (CE) 561/2006 Art. 8(6)</td></tr>
-              <tr><td>Riposo settimanale ridotto</td><td><strong>min 24h</strong> (comp. entro 3 sett.)</td><td class="mono" style="font-size:0.72rem;">Reg. (CE) 561/2006 Art. 8(6)</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-    </main>
+    <div class="alert-banner ok">
+      <div class="alert-banner-num">28</div>
+      <div class="alert-banner-label">Giorni al prossimo scarico obbligatorio — scade 04/09/2026</div>
+    </div>
   </div>
-</div>
+
+  <!-- NAV TABS -->
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showSection('sezStato', this)">
+      <span class="nav-tab-icon">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      </span>
+      Stato
+    </button>
+    <button class="nav-tab" onclick="showSection('sezScheda', this)">
+      <span class="nav-tab-icon">
+        <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+      </span>
+      Scheda
+    </button>
+    <button class="nav-tab" onclick="showSection('sezVu', this)">
+      <span class="nav-tab-icon">
+        <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><polyline points="8 21 12 17 16 21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      </span>
+      VU
+    </button>
+    <button class="nav-tab" onclick="showSection('sezStorico', this)">
+      <span class="nav-tab-icon">
+        <svg viewBox="0 0 24 24"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 1 .5 4m-3.55 5 3-3-3-3"/></svg>
+      </span>
+      Storico
+    </button>
+    <button class="nav-tab" onclick="showSection('sezCompliance', this)">
+      <span class="nav-tab-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </span>
+      EU 561
+    </button>
+  </div>
+
+  <!-- ═══ STATO ═══ -->
+  <div id="sezStato" class="section active">
+
+    <div class="kpi-grid">
+      <div class="kpi-box green">
+        <div class="kpi-box-val green">28</div>
+        <div class="kpi-box-label">Gg al prossimo scarico</div>
+      </div>
+      <div class="kpi-box green">
+        <div class="kpi-box-val green">4</div>
+        <div class="kpi-box-label">Scarichi effettuati</div>
+      </div>
+      <div class="kpi-box green">
+        <div class="kpi-box-val green">1</div>
+        <div class="kpi-box-label">Eventi registrati</div>
+      </div>
+    </div>
+
+    <!-- SCHEDA CONDUCENTE -->
+    <div class="card yellow">
+      <div class="card-title yellow">
+        <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        Scheda conducente — AC
+      </div>
+      <div class="info-row"><span class="info-key">Titolare</span><span class="info-val">Alessandro Chiarin</span></div>
+      <div class="info-row"><span class="info-key">N. scheda</span><span class="info-val" style="font-family:var(--mono);font-size:0.82rem;">I1000003421080</span></div>
+      <div class="info-row"><span class="info-key">Scadenza scheda</span><span class="info-val">29/07/2027</span></div>
+      <div class="info-row"><span class="info-key">Ultimo scarico</span><span class="info-val" style="color:var(--green);font-weight:800;">07/08/2026 — oggi</span></div>
+      <div class="info-row"><span class="info-key">Prossimo scarico entro</span><span class="info-val" style="font-weight:800;">04/09/2026</span></div>
+      <div class="info-row"><span class="info-key">Frequenza max</span><span class="info-val">28 giorni</span></div>
+      <div style="margin-top:12px;">
+        <div class="lbl" style="margin-bottom:4px;">Giorni dall'ultimo scarico</div>
+        <div class="prog-wrap"><div class="prog-bar green" style="width:3%;"></div></div>
+        <div style="font-size:0.72rem;color:var(--green);font-weight:700;margin-top:4px;">0 / 28 giorni — scarico effettuato oggi</div>
+      </div>
+      <div style="margin-top:14px;">
+        <button class="btn-primary green" onclick="showSection('sezScheda', document.querySelectorAll('.nav-tab')[1])">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Scarico completato — vedi dettagli
+        </button>
+      </div>
+    </div>
+
+    <!-- ATTIVITA OGGI -->
+    <div class="card green">
+      <div class="card-title green">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Attivita rilevata — 07/08/2026
+      </div>
+      <div class="info-row"><span class="info-key">Km registrati</span><span class="info-val" style="font-size:1.1rem;font-weight:800;color:var(--green);">229 km</span></div>
+      <div class="info-row"><span class="info-key">Veicolo</span><span class="info-val" style="font-family:var(--mono);">HD562HG</span></div>
+      <div class="info-row"><span class="info-key">Odometto al scarico</span><span class="info-val" style="font-family:var(--mono);">2.990.186 km</span></div>
+      <div class="info-row"><span class="info-key">Giorni nel buffer</span><span class="info-val">1 giorno completo</span></div>
+    </div>
+
+    <!-- EVENTI -->
+    <div class="card blue">
+      <div class="card-title blue">
+        <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Eventi nella carta
+      </div>
+      <div style="background:#fff8e1;border-radius:8px;padding:12px;border-left:3px solid var(--yellow);">
+        <div style="font-size:0.72rem;color:#b8860b;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">12/07/2023 08:19 — 09:05</div>
+        <div style="font-size:0.88rem;font-weight:600;">Riposo insufficiente settimanale</div>
+        <div style="font-size:0.75rem;color:var(--text-dim);margin-top:2px;">Reg. (CE) 561/2006 Art. 8(6)</div>
+      </div>
+    </div>
+
+    <!-- VU -->
+    <div class="card gray">
+      <div class="card-title gray">
+        <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><polyline points="8 21 12 17 16 21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Unita di bordo — HD562HG
+      </div>
+      <div class="info-row"><span class="info-key">Veicolo</span><span class="info-val">Volvo FH500</span></div>
+      <div class="info-row"><span class="info-key">Targa</span><span class="info-val" style="font-family:var(--mono);">HD562HG</span></div>
+      <div class="info-row"><span class="info-key">In servizio dal</span><span class="info-val">07/07/2026</span></div>
+      <div class="info-row"><span class="info-key">Primo scarico VU entro</span><span class="info-val" style="font-weight:800;">05/10/2026</span></div>
+      <div style="margin-top:12px;">
+        <div class="lbl" style="margin-bottom:4px;">Giorni dall'attivazione</div>
+        <div class="prog-wrap"><div class="prog-bar green" style="width:34%;"></div></div>
+        <div style="font-size:0.72rem;color:var(--green);font-weight:700;margin-top:4px;">31 / 90 giorni — 59 giorni rimanenti</div>
+      </div>
+      <div style="margin-top:14px;">
+        <button class="btn-secondary" onclick="showSection('sezVu', document.querySelector('.nav-tab:nth-child(3)'))">
+          <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><polyline points="8 21 12 17 16 21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          Scarica unita di bordo
+        </button>
+      </div>
+    </div>
+
+    <!-- OBBLIGHI -->
+    <div class="card blue">
+      <div class="card-title blue">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Obblighi — Reg. (UE) 581/2010 + 165/2014
+      </div>
+      <div class="norm-row">
+        <div class="norm-box">
+          <div class="norm-box-num">28 gg</div>
+          <div class="norm-box-label">Scheda conducente</div>
+          <div class="norm-box-ref">Reg. 581/2010 Art. 1(3)(b)</div>
+        </div>
+        <div class="norm-box">
+          <div class="norm-box-num">90 gg</div>
+          <div class="norm-box-label">Unita di bordo (VU)</div>
+          <div class="norm-box-ref">Reg. 581/2010 Art. 1(3)(a)</div>
+        </div>
+        <div class="norm-box">
+          <div class="norm-box-num">365 gg</div>
+          <div class="norm-box-label">Conservazione dati impresa</div>
+          <div class="norm-box-ref">Reg. 165/2014 Art. 33(2)</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;padding:10px 12px;background:#e8eaf6;border-radius:8px;font-size:0.76rem;color:#3949ab;font-weight:600;line-height:1.5;">
+        L'impresa (Ibersilos SLU) e' responsabile dello scarico. Sanzioni: LOTT artt. 140-142 + Baremo RD 5.0 (dal 20/01/2020).
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ SCHEDA CONDUCENTE ═══ -->
+  <div id="sezScheda" class="section">
+
+    <div class="reader-box connected" id="readerBox">
+      <div class="reader-icon">
+        <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+      </div>
+      <div class="reader-title" id="readerTitle">Lettore pronto</div>
+      <div class="reader-sub" id="readerSub">ACS ACR122U — Porta 0</div>
+      <button class="btn-primary green" onclick="simRead()" style="margin-bottom:8px;">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Leggi scheda
+      </button>
+      <button class="btn-secondary" onclick="ejectCard()">
+        <svg viewBox="0 0 24 24"><polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/></svg>
+        Espelli scheda
+      </button>
+    </div>
+
+    <div class="card green">
+      <div class="card-title green">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Scheda — Alessandro Chiarin
+      </div>
+      <div class="data-grid">
+        <div class="data-cell">
+          <div class="dc-lbl">Tipo scheda</div>
+          <div class="dc-val big">CONDUCENTE</div>
+        </div>
+        <div class="data-cell">
+          <div class="dc-lbl">Nazione</div>
+          <div class="dc-val big">IT</div>
+        </div>
+        <div class="data-cell full">
+          <div class="dc-lbl">Numero scheda</div>
+          <div class="dc-val">I1000003421080</div>
+        </div>
+        <div class="data-cell">
+          <div class="dc-lbl">Rilascio</div>
+          <div class="dc-val">30/07/2022</div>
+        </div>
+        <div class="data-cell">
+          <div class="dc-lbl">Scadenza</div>
+          <div class="dc-val green">29/07/2027</div>
+        </div>
+        <div class="data-cell full">
+          <div class="dc-lbl">Ente emittente</div>
+          <div class="dc-val">CCIAA VENEZIA ROVIGO</div>
+        </div>
+        <div class="data-cell full">
+          <div class="dc-lbl">AID selezionato</div>
+          <div class="dc-val">FF 54 41 43 48 4F <span style="color:#bbb;font-weight:400;font-family:'DM Sans',sans-serif;">(VDO/Continental)</span></div>
+        </div>
+        <div class="data-cell">
+          <div class="dc-lbl">EF_Activity</div>
+          <div class="dc-val green">13770 byte OK</div>
+        </div>
+        <div class="data-cell">
+          <div class="dc-lbl">EF_Vehicles</div>
+          <div class="dc-val green">6120 byte OK</div>
+        </div>
+        <div class="data-cell">
+          <div class="dc-lbl">EF_Events</div>
+          <div class="dc-val green">1530 byte OK</div>
+        </div>
+        <div class="data-cell">
+          <div class="dc-lbl">EF_Places</div>
+          <div class="dc-val green">1020 byte OK</div>
+        </div>
+      </div>
+      <div style="margin-top:14px;">
+        <button class="btn-primary" onclick="showToast('Auth ECC + scarico dati conducente — in sviluppo v1.0')">
+          <svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+          Scarica dati conducente
+        </button>
+        <button class="btn-secondary" onclick="showToast('Certificati esportati in formato PEM')">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Esporta certificati PEM
+        </button>
+      </div>
+    </div>
+
+    <div class="card gray">
+      <div class="card-title gray">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Hardware
+      </div>
+      <div class="info-row"><span class="info-key">Lettore</span><span class="info-val">ACS ACR122U</span></div>
+      <div class="info-row"><span class="info-key">Standard</span><span class="info-val">PC/SC — ISO 7816</span></div>
+      <div class="info-row"><span class="info-key">Protocollo</span><span class="info-val">T=1</span></div>
+      <div class="info-row"><span class="info-key">Tachografo</span><span class="info-val">VDO DTCO Gen 2</span></div>
+    </div>
+
+  </div>
+
+  <!-- ═══ UNITA DI BORDO ═══ -->
+  <div id="sezVu" class="section">
+
+    <div class="card yellow">
+      <div class="card-title yellow">
+        <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><polyline points="8 21 12 17 16 21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Unita di bordo — HD562HG
+      </div>
+      <div style="border:2px dashed var(--border);border-radius:10px;padding:28px 16px;text-align:center;cursor:pointer;transition:border-color 0.2s;margin-bottom:14px;"
+           onclick="showToast('Collegare HD562HG via USB o selezionare file .ddd')">
+        <svg viewBox="0 0 24 24" style="width:36px;height:36px;stroke:#ccc;fill:none;stroke-width:1.5;margin-bottom:10px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <div style="font-weight:700;font-size:0.92rem;margin-bottom:3px;">Seleziona file .ddd</div>
+        <div style="font-size:0.78rem;color:var(--text-dim);">VDO DTCO 4.0 / 3.3 / 2.0</div>
+      </div>
+      <button class="btn-primary yellow" onclick="showToast('Collegare HD562HG via USB')">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Carica file .ddd
+      </button>
+    </div>
+
+    <div class="card gray">
+      <div class="card-title gray">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Stato VU
+      </div>
+      <div class="info-row"><span class="info-key">Veicolo</span><span class="info-val">Volvo FH500</span></div>
+      <div class="info-row"><span class="info-key">Targa</span><span class="info-val" style="font-family:var(--mono);">HD562HG</span></div>
+      <div class="info-row"><span class="info-key">In servizio dal</span><span class="info-val">07/07/2026</span></div>
+      <div class="info-row"><span class="info-key">Primo scarico entro</span><span class="info-val" style="font-weight:800;">05/10/2026</span></div>
+      <div class="info-row"><span class="info-key">Stato</span><span class="info-val"><span class="pill pill-off">Da scaricare</span></span></div>
+      <div style="margin-top:10px;padding:10px 12px;background:#fff8e1;border-radius:8px;font-size:0.78rem;color:#b8860b;font-weight:600;">
+        Tachografo operativo dal 07/07/2026 — primo scarico VU obbligatorio entro 90 giorni. Tempo rimanente: 59 giorni.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ STORICO ═══ -->
+  <div id="sezStorico" class="section">
+
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div class="card-title" style="margin-bottom:0;">
+          <svg viewBox="0 0 24 24"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 1 .5 4m-3.55 5 3-3-3-3"/></svg>
+          Storico — AC / HD562HG
+        </div>
+        <button class="filter-btn" style="margin-bottom:0;border-color:var(--red);color:var(--red);" onclick="showToast('Export CSV scaricato')">
+          <svg viewBox="0 0 24 24" style="width:12px;height:12px;display:inline;stroke:currentColor;fill:none;stroke-width:2;vertical-align:middle;margin-right:3px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Esporta CSV
+        </button>
+      </div>
+      <div class="filter-bar">
+        <button class="filter-btn active" onclick="filterSt(this,'tutti')">Tutti</button>
+        <button class="filter-btn" onclick="filterSt(this,'scheda')">Scheda</button>
+        <button class="filter-btn" onclick="filterSt(this,'vu')">VU</button>
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr><th>Data/Ora</th><th>Tipo</th><th>Periodo</th><th>Att.</th><th>Infr.</th><th>File</th></tr></thead>
+          <tbody id="storicoBody">
+            <tr data-tipo="scheda">
+              <td style="white-space:nowrap;"><strong>07/08/2026</strong><br><span style="color:#bbb;font-size:0.72rem;">scarico_20260807_2024/</span></td>
+              <td><span class="pill pill-ok">OGGI</span></td>
+              <td style="white-space:nowrap;">10/07—07/08</td>
+              <td>229 km</td>
+              <td style="color:var(--green);font-weight:700;">0</td>
+              <td><span style="color:var(--green);font-weight:700;font-size:0.78rem;">BIN</span></td>
+            </tr>
+            <tr data-tipo="scheda">
+              <td style="white-space:nowrap;">10/07/2026<br><span style="color:#bbb;font-size:0.72rem;">—</span></td>
+              <td><span class="pill pill-blue">SCHEDA</span></td>
+              <td style="white-space:nowrap;">13/06—10/07</td>
+              <td>—</td>
+              <td style="color:var(--green);font-weight:700;">0</td>
+              <td><span style="color:#bbb;font-size:0.78rem;">—</span></td>
+            </tr>
+            <tr data-tipo="scheda">
+              <td style="white-space:nowrap;">13/06/2026<br><span style="color:#bbb;font-size:0.72rem;">—</span></td>
+              <td><span class="pill pill-blue">SCHEDA</span></td>
+              <td style="white-space:nowrap;">16/05—13/06</td>
+              <td>—</td>
+              <td style="color:var(--green);font-weight:700;">0</td>
+              <td><span style="color:#bbb;font-size:0.78rem;">—</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ EU 561 COMPLIANCE ═══ -->
+  <div id="sezCompliance" class="section">
+
+    <div class="card">
+      <div class="card-title">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Ore guida — settimana corrente
+      </div>
+      <canvas id="chartOre" style="width:100%;max-height:180px;"></canvas>
+      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+        <div style="background:#e8f5e9;border-radius:6px;padding:4px 10px;font-size:0.7rem;font-weight:700;color:#2e7d32;">Settimana: 35h / 56h max</div>
+        <div style="background:#e8f5e9;border-radius:6px;padding:4px 10px;font-size:0.7rem;font-weight:700;color:#2e7d32;">Guida est.: 0 / 2 gg</div>
+      </div>
+    </div>
+
+    <div class="card blue">
+      <div class="card-title blue">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Limiti Reg. (CE) 561/2006 — AC
+      </div>
+      <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#bbb;margin-bottom:8px;">GUIDA</div>
+      <div class="comp-row">
+        <div class="comp-label">Giornaliera normale <strong>(max 9h)</strong><br><span style="font-size:0.68rem;color:#bbb;">Art. 6(1)</span></div>
+        <div style="flex:1"><div class="prog-wrap"><div class="prog-bar green" style="width:72%;"></div></div></div>
+        <div class="comp-val" style="color:var(--green);">6.5h</div>
+      </div>
+      <div class="comp-row">
+        <div class="comp-label">Settimanale <strong>(max 56h)</strong><br><span style="font-size:0.68rem;color:#bbb;">Art. 6(2)</span></div>
+        <div style="flex:1"><div class="prog-wrap"><div class="prog-bar green" style="width:63%;"></div></div></div>
+        <div class="comp-val" style="color:var(--green);">35h</div>
+      </div>
+      <div class="comp-row">
+        <div class="comp-label">Bisettimanale <strong>(max 90h)</strong><br><span style="font-size:0.68rem;color:#bbb;">Art. 6(3)</span></div>
+        <div style="flex:1"><div class="prog-wrap"><div class="prog-bar green" style="width:60%;"></div></div></div>
+        <div class="comp-val" style="color:var(--green);">54h</div>
+      </div>
+      <div class="comp-row">
+        <div class="comp-label">Continuata <strong>(max 4h30)</strong><br><span style="font-size:0.68rem;color:#bbb;">Art. 7</span></div>
+        <div style="flex:1"><div class="prog-wrap"><div class="prog-bar green" style="width:66%;"></div></div></div>
+        <div class="comp-val" style="color:var(--green);">3h</div>
+      </div>
+      <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#bbb;margin:10px 0 8px;">RIPOSO</div>
+      <div class="comp-row">
+        <div class="comp-label">Giornaliero normale <strong>(min 11h)</strong><br><span style="font-size:0.68rem;color:#bbb;">Art. 8(1)</span></div>
+        <div class="comp-val" style="color:var(--green);">11h OK</div>
+      </div>
+      <div class="comp-row">
+        <div class="comp-label">Settimanale normale <strong>(min 45h)</strong><br><span style="font-size:0.68rem;color:#bbb;">Art. 8(6)</span></div>
+        <div class="comp-val" style="color:var(--green);">45h OK</div>
+      </div>
+      <div style="margin-top:12px;padding:10px 12px;background:#e8f5e9;border-radius:8px;font-size:0.78rem;color:#2e7d32;font-weight:700;">
+        Nessuna infrazione nell'ultimo periodo scaricato (10/07 — 07/08/2026).
+      </div>
+    </div>
+
+    <div class="card gray">
+      <div class="card-title gray">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Riferimenti normativi
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr><th>Parametro</th><th>Valore</th><th>Base legale</th></tr></thead>
+          <tbody>
+            <tr><td>Scarico scheda conducente</td><td><strong>max 28 gg</strong></td><td class="mono" style="font-size:0.7rem;">Reg. (UE) 581/2010 Art. 1(3)(b)</td></tr>
+            <tr><td>Scarico VU</td><td><strong>max 90 gg</strong></td><td class="mono" style="font-size:0.7rem;">Reg. (UE) 581/2010 Art. 1(3)(a)</td></tr>
+            <tr><td>Conservazione dati</td><td><strong>min 365 gg</strong></td><td class="mono" style="font-size:0.7rem;">Reg. (UE) 165/2014 Art. 33(2)</td></tr>
+            <tr><td>Guida giornaliera normale</td><td><strong>max 9h</strong></td><td class="mono" style="font-size:0.7rem;">Reg. (CE) 561/2006 Art. 6(1)</td></tr>
+            <tr><td>Guida settimanale</td><td><strong>max 56h</strong></td><td class="mono" style="font-size:0.7rem;">Reg. (CE) 561/2006 Art. 6(2)</td></tr>
+            <tr><td>Guida bisettimanale</td><td><strong>max 90h</strong></td><td class="mono" style="font-size:0.7rem;">Reg. (CE) 561/2006 Art. 6(3)</td></tr>
+            <tr><td>Guida continuata</td><td><strong>max 4h30</strong></td><td class="mono" style="font-size:0.7rem;">Reg. (CE) 561/2006 Art. 7</td></tr>
+            <tr><td>Riposo giornaliero normale</td><td><strong>min 11h</strong></td><td class="mono" style="font-size:0.7rem;">Reg. (CE) 561/2006 Art. 8(1)</td></tr>
+            <tr><td>Riposo settimanale normale</td><td><strong>min 45h</strong></td><td class="mono" style="font-size:0.7rem;">Reg. (CE) 561/2006 Art. 8(6)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- /container -->
 
 <div class="toast" id="toast"></div>
 
 <script>
+document.getElementById('dateDisplay').textContent = new Date().toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
 
-function switchPanel(id) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  const p = document.getElementById('panel-' + id);
-  const t = document.getElementById('tab-' + id);
-  if (p) p.classList.add('active');
-  if (t) t.classList.add('active');
-  if (id === 'compliance') setTimeout(drawChart, 60);
+function showSection(id, tab) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  const s = document.getElementById(id);
+  if (s) s.classList.add('active');
+  if (tab) tab.classList.add('active');
+  if (id === 'sezCompliance') setTimeout(drawChart, 60);
+  window.scrollTo(0,0);
 }
 
 let _toT;
@@ -590,7 +638,7 @@ function showToast(msg) {
   el.textContent = msg;
   el.style.display = 'block';
   clearTimeout(_toT);
-  _toT = setTimeout(() => el.style.display = 'none', 3200);
+  _toT = setTimeout(() => el.style.display = 'none', 3000);
 }
 
 function simRead() {
@@ -601,8 +649,8 @@ function simRead() {
   setTimeout(() => {
     box.className = 'reader-box connected';
     document.getElementById('readerTitle').textContent = 'Scheda letta';
-    document.getElementById('readerSub').textContent = 'Alessandro Chiarin â€” Scheda Conducente';
-    showToast('Scheda CONDUCENTE letta â€” AID VDO confermato');
+    document.getElementById('readerSub').textContent = 'Alessandro Chiarin — Scheda Conducente';
+    showToast('Scheda CONDUCENTE letta — AID VDO confermato');
   }, 2200);
 }
 
@@ -625,43 +673,39 @@ function filterSt(btn, tipo) {
 function drawChart() {
   const c = document.getElementById('chartOre');
   if (!c) return;
-  const W = c.clientWidth || 380, H = 200;
+  const W = c.parentElement.clientWidth - 32 || 320, H = 180;
   c.width = W; c.height = H;
   const ctx = c.getContext('2d');
   const days = ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
   const ac = [6.5, 7.1, 6.8, 7.5, 7.0, 0, 0];
-  const maxV = 10, pad = {t:28,r:16,b:32,l:32};
+  const maxV = 10, pad = {t:22,r:10,b:26,l:26};
   const gW = W-pad.l-pad.r, gH = H-pad.t-pad.b;
   ctx.clearRect(0,0,W,H);
-
   [0,3,6,9].forEach(v => {
     const y = pad.t+gH-(v/maxV)*gH;
     ctx.strokeStyle='#f0f0f0'; ctx.lineWidth=1;
     ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+gW,y); ctx.stroke();
-    ctx.fillStyle='#ccc'; ctx.font='600 9px DM Sans,sans-serif';
-    ctx.textAlign='right'; ctx.fillText(v+'h', pad.l-4, y+3);
+    ctx.fillStyle='#ccc'; ctx.font='600 8px DM Sans,sans-serif';
+    ctx.textAlign='right'; ctx.fillText(v+'h', pad.l-3, y+3);
   });
-
   const y9 = pad.t+gH-(9/maxV)*gH;
   ctx.strokeStyle='rgba(227,6,19,0.2)'; ctx.lineWidth=1; ctx.setLineDash([4,3]);
   ctx.beginPath(); ctx.moveTo(pad.l,y9); ctx.lineTo(pad.l+gW,y9); ctx.stroke();
   ctx.setLineDash([]);
-  ctx.fillStyle='rgba(227,6,19,0.5)'; ctx.font='700 9px DM Sans,sans-serif';
-  ctx.textAlign='left'; ctx.fillText('max 9h', pad.l+4, y9-3);
-
+  ctx.fillStyle='rgba(227,6,19,0.5)'; ctx.font='700 8px DM Sans,sans-serif';
+  ctx.textAlign='left'; ctx.fillText('max 9h', pad.l+3, y9-3);
   const slotW = gW/7, bw = slotW*0.6;
   ac.forEach((v,i) => {
     if (!v) return;
     const x = pad.l+i*slotW+(slotW-bw)/2;
     const bh = (v/maxV)*gH, y = pad.t+gH-bh;
-    ctx.fillStyle = 'rgba(40,167,69,0.8)';
+    ctx.fillStyle='rgba(40,167,69,0.85)';
     ctx.beginPath(); ctx.roundRect(x,y,bw,bh,3); ctx.fill();
-    ctx.fillStyle='#2e7d32'; ctx.font='700 9px DM Sans,sans-serif'; ctx.textAlign='center';
-    ctx.fillText(v+'h', x+bw/2, y-4);
+    ctx.fillStyle='#2e7d32'; ctx.font='700 8px DM Sans,sans-serif'; ctx.textAlign='center';
+    ctx.fillText(v+'h', x+bw/2, y-3);
   });
-
-  ctx.fillStyle='#bbb'; ctx.font='700 10px DM Sans,sans-serif'; ctx.textAlign='center';
-  days.forEach((d,i) => ctx.fillText(d, pad.l+i*slotW+slotW/2, H-8));
+  ctx.fillStyle='#bbb'; ctx.font='700 9px DM Sans,sans-serif'; ctx.textAlign='center';
+  days.forEach((d,i) => ctx.fillText(d, pad.l+i*slotW+slotW/2, H-4));
 }
 </script>
 </body>

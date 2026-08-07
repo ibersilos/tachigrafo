@@ -1,0 +1,22 @@
+{
+  "name": "Ibersilos Tachigrafo",
+  "short_name": "Tachigrafo",
+  "description": "Gestione scarichi tachigrafici — Alessandro Chiarin",
+  "start_url": "/tachigrafo/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F5F5F5",
+  "theme_color": "#E30613",
+  "icons": [
+    {
+      "src": "logo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}
