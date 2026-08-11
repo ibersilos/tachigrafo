@@ -188,9 +188,9 @@ body{background:var(--gray);color:var(--black);overflow-x:hidden;}
       </div>
       <div class="date-display" id="dateDisplay"></div>
     </div>
-    <div class="alert-banner ok">
-      <div class="alert-banner-num">28</div>
-      <div class="alert-banner-label">Giorni al prossimo scarico obbligatorio — scade 04/09/2026</div>
+    <div class="alert-banner ok" id="bannerBox">
+      <div class="alert-banner-num" id="bannerNum">28</div>
+      <div class="alert-banner-label" id="bannerLabel">Giorni al prossimo scarico obbligatorio — scade 04/09/2026</div>
     </div>
   </div>
 
@@ -232,8 +232,8 @@ body{background:var(--gray);color:var(--black);overflow-x:hidden;}
   <div id="sezStato" class="section active">
 
     <div class="kpi-grid">
-      <div class="kpi-box green">
-        <div class="kpi-box-val green">28</div>
+      <div class="kpi-box green" id="kpiBoxScarico">
+        <div class="kpi-box-val green" id="kpiGgScarico">28</div>
         <div class="kpi-box-label">Gg al prossimo scarico</div>
       </div>
       <div class="kpi-box green">
@@ -255,13 +255,13 @@ body{background:var(--gray);color:var(--black);overflow-x:hidden;}
       <div class="info-row"><span class="info-key">Titolare</span><span class="info-val">Alessandro Chiarin</span></div>
       <div class="info-row"><span class="info-key">N. scheda</span><span class="info-val" style="font-family:var(--mono);font-size:0.82rem;">I1000003421080</span></div>
       <div class="info-row"><span class="info-key">Scadenza scheda</span><span class="info-val">29/07/2027</span></div>
-      <div class="info-row"><span class="info-key">Ultimo scarico</span><span class="info-val" style="color:var(--green);font-weight:800;">07/08/2026 — oggi</span></div>
-      <div class="info-row"><span class="info-key">Prossimo scarico entro</span><span class="info-val" style="font-weight:800;">04/09/2026</span></div>
+      <div class="info-row"><span class="info-key">Ultimo scarico</span><span class="info-val" id="infoUltimoScarico" style="color:var(--green);font-weight:800;">07/08/2026 — oggi</span></div>
+      <div class="info-row"><span class="info-key">Prossimo scarico entro</span><span class="info-val" id="infoProssimoScarico" style="font-weight:800;">04/09/2026</span></div>
       <div class="info-row"><span class="info-key">Frequenza max</span><span class="info-val">28 giorni</span></div>
       <div style="margin-top:12px;">
         <div class="lbl" style="margin-bottom:4px;">Giorni dall'ultimo scarico</div>
-        <div class="prog-wrap"><div class="prog-bar green" style="width:3%;"></div></div>
-        <div style="font-size:0.72rem;color:var(--green);font-weight:700;margin-top:4px;">0 / 28 giorni — scarico effettuato oggi</div>
+        <div class="prog-wrap"><div class="prog-bar green" id="progBarScheda" style="width:3%;"></div></div>
+        <div id="progLabelScheda" style="font-size:0.72rem;color:var(--green);font-weight:700;margin-top:4px;">0 / 28 giorni — scarico effettuato oggi</div>
       </div>
       <div style="margin-top:14px;">
         <button class="btn-primary green" onclick="showSection('sezScheda', document.querySelectorAll('.nav-tab')[1])">
@@ -420,9 +420,9 @@ body{background:var(--gray);color:var(--black);overflow-x:hidden;}
         </div>
       </div>
       <div style="margin-top:14px;">
-        <button class="btn-primary" onclick="showToast('Auth ECC + scarico dati conducente — in sviluppo v1.0')">
+        <button class="btn-primary" id="btnRegistraScarico" onclick="registraScarico()">
           <svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
-          Scarica dati conducente
+          Registra scarico oggi
         </button>
         <button class="btn-secondary" onclick="showToast('Certificati esportati in formato PEM')">
           <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -669,6 +669,80 @@ function filterSt(btn, tipo) {
     r.style.display = (tipo === 'tutti' || r.dataset.tipo === tipo) ? '' : 'none';
   });
 }
+
+// ─── Scarico scheda ────────────────────────────────────────────
+const SCHEDA_KEY = 'ibs_tacho_scheda_last';
+const SCHEDA_MAX = 28;
+
+function _today() { return new Date().toISOString().slice(0, 10); }
+function _daysBetween(a, b) { return Math.round((new Date(b) - new Date(a)) / 86400000); }
+function _addDays(iso, n) { const d = new Date(iso); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); }
+function _fmt(iso) { const [y,m,d] = iso.split('-'); return `${d}/${m}/${y}`; }
+
+function updateSchedaUI() {
+  const today   = _today();
+  const last    = localStorage.getItem(SCHEDA_KEY) || '2026-08-07';
+  const elapsed = _daysBetween(last, today);
+  const remaining = Math.max(0, SCHEDA_MAX - elapsed);
+  const nextDue = _addDays(last, SCHEDA_MAX);
+  const pct     = Math.min(100, (elapsed / SCHEDA_MAX) * 100);
+  const isToday = last === today;
+  const isOver  = elapsed > SCHEDA_MAX;
+  const color   = isOver ? 'red' : pct > 70 ? 'yellow' : 'green';
+
+  const $ = id => document.getElementById(id);
+
+  const bb = $('bannerBox');
+  if (bb) {
+    bb.className = 'alert-banner' + (isOver ? '' : ' ok');
+    $('bannerNum').textContent = isOver ? elapsed : remaining;
+    $('bannerLabel').textContent = isOver
+      ? `Giorni dall'ultimo scarico — SCADUTO il ${_fmt(nextDue)}`
+      : `Giorni al prossimo scarico obbligatorio — scade ${_fmt(nextDue)}`;
+  }
+
+  const kv = $('kpiGgScarico');
+  if (kv) { kv.textContent = remaining; kv.className = `kpi-box-val ${color}`; }
+  const kb = $('kpiBoxScarico');
+  if (kb) kb.className = `kpi-box ${color}`;
+
+  const iu = $('infoUltimoScarico');
+  if (iu) {
+    iu.textContent = _fmt(last) + (isToday ? ' — oggi' : '');
+    iu.style.color = isOver ? 'var(--red)' : 'var(--green)';
+  }
+  const ip = $('infoProssimoScarico');
+  if (ip) { ip.textContent = _fmt(nextDue); ip.style.color = isOver ? 'var(--red)' : ''; }
+
+  const pb = $('progBarScheda');
+  if (pb) { pb.style.width = Math.max(3, pct) + '%'; pb.className = `prog-bar ${color}`; }
+  const pl = $('progLabelScheda');
+  if (pl) {
+    pl.textContent = `${elapsed} / ${SCHEDA_MAX} giorni${isToday ? ' — scarico effettuato oggi' : isOver ? ' — SCADUTO' : ''}`;
+    pl.style.color = isOver ? 'var(--red)' : pct > 70 ? '#b8860b' : 'var(--green)';
+  }
+
+  const btn = $('btnRegistraScarico');
+  if (btn) {
+    if (isToday) {
+      btn.className = 'btn-primary green';
+      btn.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Scarico registrato — ${_fmt(today)}`;
+    } else {
+      btn.className = 'btn-primary';
+      btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg> Registra scarico oggi (${_fmt(today)})`;
+    }
+  }
+}
+
+function registraScarico() {
+  const today = _today();
+  localStorage.setItem(SCHEDA_KEY, today);
+  updateSchedaUI();
+  showToast('Scarico scheda registrato — ' + _fmt(today));
+}
+
+updateSchedaUI();
+// ──────────────────────────────────────────────────────────────
 
 function drawChart() {
   const c = document.getElementById('chartOre');
