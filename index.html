@@ -165,6 +165,9 @@ body{background:var(--gray);color:var(--black);overflow-x:hidden;}
 .norm-box-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-dim);}
 .norm-box-ref{font-size:0.65rem;color:#3949ab;font-weight:700;margin-top:3px;}
 </style>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -264,7 +267,7 @@ body{background:var(--gray);color:var(--black);overflow-x:hidden;}
         <div id="progLabelScheda" style="font-size:0.72rem;color:var(--green);font-weight:700;margin-top:4px;">0 / 28 giorni — scarico effettuato oggi</div>
       </div>
       <div style="margin-top:14px;">
-        <button class="btn-primary green" onclick="showSection('sezScheda', document.querySelectorAll('.nav-tab')[1])">
+        <button class="btn-primary green" id="btnStatoScarico" onclick="showSection('sezScheda', document.querySelectorAll('.nav-tab')[1])">
           <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
           Scarico completato — vedi dettagli
         </button>
@@ -305,11 +308,11 @@ body{background:var(--gray);color:var(--black);overflow-x:hidden;}
       <div class="info-row"><span class="info-key">Veicolo</span><span class="info-val">Volvo FH500</span></div>
       <div class="info-row"><span class="info-key">Targa</span><span class="info-val" style="font-family:var(--mono);">HD562HG</span></div>
       <div class="info-row"><span class="info-key">In servizio dal</span><span class="info-val">07/07/2026</span></div>
-      <div class="info-row"><span class="info-key">Primo scarico VU entro</span><span class="info-val" style="font-weight:800;">05/10/2026</span></div>
+      <div class="info-row"><span class="info-key">Prossimo scarico VU entro</span><span class="info-val" id="infoVuScadenza" style="font-weight:800;">05/10/2026</span></div>
       <div style="margin-top:12px;">
-        <div class="lbl" style="margin-bottom:4px;">Giorni dall'attivazione</div>
-        <div class="prog-wrap"><div class="prog-bar green" style="width:34%;"></div></div>
-        <div style="font-size:0.72rem;color:var(--green);font-weight:700;margin-top:4px;">31 / 90 giorni — 59 giorni rimanenti</div>
+        <div class="lbl" style="margin-bottom:4px;">Giorni dall'ultimo scarico / attivazione</div>
+        <div class="prog-wrap"><div class="prog-bar green" id="progBarVu" style="width:34%;"></div></div>
+        <div id="progLabelVu" style="font-size:0.72rem;color:var(--green);font-weight:700;margin-top:4px;">31 / 90 giorni — 59 giorni rimanenti</div>
       </div>
       <div style="margin-top:14px;">
         <button class="btn-secondary" onclick="showSection('sezVu', document.querySelector('.nav-tab:nth-child(3)'))">
@@ -420,9 +423,13 @@ body{background:var(--gray);color:var(--black);overflow-x:hidden;}
         </div>
       </div>
       <div style="margin-top:14px;">
+        <div style="margin-bottom:10px;">
+          <div class="lbl" style="margin-bottom:6px;">Data scarico effettuato</div>
+          <input type="date" id="inputDataScarico" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:0.95rem;font-family:'DM Sans',sans-serif;font-weight:600;color:var(--black);background:#fff;">
+        </div>
         <button class="btn-primary" id="btnRegistraScarico" onclick="registraScarico()">
           <svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
-          Registra scarico oggi
+          Registra scarico
         </button>
         <button class="btn-secondary" onclick="showToast('Certificati esportati in formato PEM')">
           <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -472,10 +479,20 @@ body{background:var(--gray);color:var(--black);overflow-x:hidden;}
       <div class="info-row"><span class="info-key">Veicolo</span><span class="info-val">Volvo FH500</span></div>
       <div class="info-row"><span class="info-key">Targa</span><span class="info-val" style="font-family:var(--mono);">HD562HG</span></div>
       <div class="info-row"><span class="info-key">In servizio dal</span><span class="info-val">07/07/2026</span></div>
-      <div class="info-row"><span class="info-key">Primo scarico entro</span><span class="info-val" style="font-weight:800;">05/10/2026</span></div>
-      <div class="info-row"><span class="info-key">Stato</span><span class="info-val"><span class="pill pill-off">Da scaricare</span></span></div>
-      <div style="margin-top:10px;padding:10px 12px;background:#fff8e1;border-radius:8px;font-size:0.78rem;color:#b8860b;font-weight:600;">
+      <div class="info-row"><span class="info-key">Prossimo scarico entro</span><span class="info-val" id="vuInfoScadenza" style="font-weight:800;">05/10/2026</span></div>
+      <div class="info-row"><span class="info-key">Stato</span><span class="info-val"><span class="pill pill-off" id="vuPillStato">Da scaricare</span></span></div>
+      <div id="vuStatusNote" style="margin-top:10px;padding:10px 12px;background:#fff8e1;border-radius:8px;font-size:0.78rem;color:#b8860b;font-weight:600;">
         Tachografo operativo dal 07/07/2026 — primo scarico VU obbligatorio entro 90 giorni. Tempo rimanente: 59 giorni.
+      </div>
+      <div style="margin-top:14px;">
+        <div style="margin-bottom:10px;">
+          <div class="lbl" style="margin-bottom:6px;">Data scarico VU effettuato</div>
+          <input type="date" id="inputDataVu" style="width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:0.95rem;font-family:'DM Sans',sans-serif;font-weight:600;color:var(--black);background:#fff;">
+        </div>
+        <button class="btn-primary yellow" id="btnRegistraVu" onclick="registraVu()">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Registra scarico VU
+        </button>
       </div>
     </div>
 
@@ -670,78 +687,121 @@ function filterSt(btn, tipo) {
   });
 }
 
-// ─── Scarico scheda ────────────────────────────────────────────
+// ─── Tachigrafo — Firebase + localStorage ──────────────────────
 const SCHEDA_KEY = 'ibs_tacho_scheda_last';
+const VU_KEY     = 'ibs_tacho_vu_last';
 const SCHEDA_MAX = 28;
+const VU_MAX     = 90;
+const VU_START   = '2026-07-07';
 
-function _today() { return new Date().toISOString().slice(0, 10); }
-function _daysBetween(a, b) { return Math.round((new Date(b) - new Date(a)) / 86400000); }
-function _addDays(iso, n) { const d = new Date(iso); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); }
-function _fmt(iso) { const [y,m,d] = iso.split('-'); return `${d}/${m}/${y}`; }
+const FB_CFG = {
+  apiKey: 'AIzaSyDbLEYKeJw0667KPnMKLnwdALK_UB71XtM',
+  projectId: 'ibersilos-c6053',
+  databaseURL: 'https://ibersilos-c6053-default-rtdb.europe-west1.firebasedatabase.app'
+};
+let _db = null;
 
-function updateSchedaUI() {
-  const today   = _today();
-  const last    = localStorage.getItem(SCHEDA_KEY) || '2026-08-07';
-  const elapsed = _daysBetween(last, today);
-  const remaining = Math.max(0, SCHEDA_MAX - elapsed);
-  const nextDue = _addDays(last, SCHEDA_MAX);
-  const pct     = Math.min(100, (elapsed / SCHEDA_MAX) * 100);
-  const isToday = last === today;
-  const isOver  = elapsed > SCHEDA_MAX;
-  const color   = isOver ? 'red' : pct > 70 ? 'yellow' : 'green';
+function _fbInit() {
+  try {
+    if (!firebase.apps.length) firebase.initializeApp(FB_CFG);
+    firebase.auth().signInAnonymously().then(() => {
+      _db = firebase.database();
+      _db.ref('tachigrafo/AC/schedaLast').on('value', s => {
+        const v = s.val();
+        if (v) { localStorage.setItem(SCHEDA_KEY, v); updateSchedaUI(v); }
+        else updateSchedaUI(localStorage.getItem(SCHEDA_KEY) || null);
+      });
+      _db.ref('tachigrafo/AC/vuLast').on('value', s => {
+        const v = s.val();
+        if (v) { localStorage.setItem(VU_KEY, v); updateVuUI(v); }
+        else updateVuUI(localStorage.getItem(VU_KEY) || null);
+      });
+    }).catch(() => { updateSchedaUI(localStorage.getItem(SCHEDA_KEY)||null); updateVuUI(localStorage.getItem(VU_KEY)||null); });
+  } catch(e) { updateSchedaUI(localStorage.getItem(SCHEDA_KEY)||null); updateVuUI(localStorage.getItem(VU_KEY)||null); }
+}
 
-  const $ = id => document.getElementById(id);
+function _today() { return new Date().toISOString().slice(0,10); }
+function _days(a,b) { return Math.round((new Date(b)-new Date(a))/86400000); }
+function _add(iso,n) { const d=new Date(iso); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
+function _fmt(iso) { const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; }
+const $=id=>document.getElementById(id);
 
-  const bb = $('bannerBox');
-  if (bb) {
-    bb.className = 'alert-banner' + (isOver ? '' : ' ok');
-    $('bannerNum').textContent = isOver ? elapsed : remaining;
-    $('bannerLabel').textContent = isOver
-      ? `Giorni dall'ultimo scarico — SCADUTO il ${_fmt(nextDue)}`
-      : `Giorni al prossimo scarico obbligatorio — scade ${_fmt(nextDue)}`;
+function updateSchedaUI(last) {
+  const today=_today();
+  if (!last) {
+    const bb=$('bannerBox');
+    if (bb) { bb.className='alert-banner'; $('bannerNum').textContent='!'; $('bannerLabel').textContent='Nessuno scarico registrato — inserire la data'; }
+    if ($('kpiGgScarico')) { $('kpiGgScarico').textContent='—'; $('kpiGgScarico').className='kpi-box-val red'; }
+    if ($('kpiBoxScarico')) $('kpiBoxScarico').className='kpi-box red';
+    if ($('infoUltimoScarico')) { $('infoUltimoScarico').textContent='Non registrato'; $('infoUltimoScarico').style.color='var(--red)'; }
+    if ($('infoProssimoScarico')) $('infoProssimoScarico').textContent='—';
+    if ($('progBarScheda')) { $('progBarScheda').style.width='100%'; $('progBarScheda').className='prog-bar red'; }
+    if ($('progLabelScheda')) { $('progLabelScheda').textContent='Nessuno scarico registrato'; $('progLabelScheda').style.color='var(--red)'; }
+    const btn=$('btnRegistraScarico');
+    if (btn) { btn.className='btn-primary'; btn.innerHTML=`<svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg> Registra primo scarico`; }
+    const sb=$('btnStatoScarico');
+    if (sb) { sb.className='btn-primary'; sb.innerHTML=`<svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg> Nessuno scarico — vai a Scheda`; sb.onclick=()=>showSection('sezScheda',document.querySelectorAll('.nav-tab')[1]); }
+    const inp=$('inputDataScarico'); if (inp && !inp.value) inp.value=today;
+    return;
   }
+  const elapsed=_days(last,today), remaining=Math.max(0,SCHEDA_MAX-elapsed);
+  const nextDue=_add(last,SCHEDA_MAX), pct=Math.min(100,(elapsed/SCHEDA_MAX)*100);
+  const isToday=last===today, isOver=elapsed>SCHEDA_MAX;
+  const color=isOver?'red':pct>70?'yellow':'green';
+  const bb=$('bannerBox');
+  if (bb) { bb.className='alert-banner'+(isOver?'':' ok'); $('bannerNum').textContent=isOver?elapsed:remaining; $('bannerLabel').textContent=isOver?`Giorni dall'ultimo scarico — SCADUTO il ${_fmt(nextDue)}`:`Giorni al prossimo scarico obbligatorio — scade ${_fmt(nextDue)}`; }
+  const kv=$('kpiGgScarico'); if (kv) { kv.textContent=remaining; kv.className=`kpi-box-val ${color}`; }
+  const kb=$('kpiBoxScarico'); if (kb) kb.className=`kpi-box ${color}`;
+  const iu=$('infoUltimoScarico'); if (iu) { iu.textContent=_fmt(last)+(isToday?' — oggi':''); iu.style.color=isOver?'var(--red)':'var(--green)'; }
+  const ip=$('infoProssimoScarico'); if (ip) { ip.textContent=_fmt(nextDue); ip.style.color=isOver?'var(--red)':''; }
+  const pb=$('progBarScheda'); if (pb) { pb.style.width=Math.max(3,pct)+'%'; pb.className=`prog-bar ${color}`; }
+  const pl=$('progLabelScheda'); if (pl) { pl.textContent=`${elapsed} / ${SCHEDA_MAX} giorni${isToday?' — scarico effettuato oggi':isOver?' — SCADUTO':''}`; pl.style.color=isOver?'var(--red)':pct>70?'#b8860b':'var(--green)'; }
+  const btn=$('btnRegistraScarico');
+  if (btn) { if (isToday) { btn.className='btn-primary green'; btn.innerHTML=`<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Scarico registrato — ${_fmt(today)}`; } else { btn.className='btn-primary'; btn.innerHTML=`<svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg> Registra scarico`; } }
+  const inp=$('inputDataScarico'); if (inp && !inp.value) inp.value=last;
+  const sb=$('btnStatoScarico');
+  if (sb) { sb.onclick=()=>showSection('sezScheda',document.querySelectorAll('.nav-tab')[1]); if (isOver) { sb.className='btn-primary'; sb.innerHTML=`<svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg> SCADUTO — registra subito`; } else { sb.className='btn-primary green'; sb.innerHTML=`<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> ${isToday?'Scarico effettuato oggi':'Scarico OK — vedi dettagli'}`; } }
+}
 
-  const kv = $('kpiGgScarico');
-  if (kv) { kv.textContent = remaining; kv.className = `kpi-box-val ${color}`; }
-  const kb = $('kpiBoxScarico');
-  if (kb) kb.className = `kpi-box ${color}`;
-
-  const iu = $('infoUltimoScarico');
-  if (iu) {
-    iu.textContent = _fmt(last) + (isToday ? ' — oggi' : '');
-    iu.style.color = isOver ? 'var(--red)' : 'var(--green)';
+function updateVuUI(last) {
+  const today=_today();
+  const refDate=last||VU_START, deadline=_add(refDate,VU_MAX);
+  const elapsed=_days(refDate,today), remaining=Math.max(0,VU_MAX-elapsed);
+  const pct=Math.min(100,(elapsed/VU_MAX)*100), isOver=elapsed>VU_MAX;
+  const color=isOver?'red':pct>70?'yellow':'green';
+  if ($('infoVuScadenza')) $('infoVuScadenza').textContent=_fmt(deadline);
+  if ($('vuInfoScadenza')) $('vuInfoScadenza').textContent=_fmt(deadline);
+  const pb=$('progBarVu'); if (pb) { pb.style.width=Math.max(3,pct)+'%'; pb.className=`prog-bar ${color}`; }
+  const pl=$('progLabelVu'); if (pl) { pl.textContent=`${elapsed} / ${VU_MAX} giorni${last?' dall\'ultimo scarico':' dall\'attivazione'}${isOver?' — SCADUTO':` — ${remaining} giorni rimanenti`}`; pl.style.color=isOver?'var(--red)':pct>70?'#b8860b':'var(--green)'; }
+  const note=$('vuStatusNote');
+  if (note) {
+    if (isOver) { note.textContent=`Scarico VU scaduto il ${_fmt(deadline)} — registrare subito.`; note.style.background='#ffebee'; note.style.color='var(--red)'; }
+    else if (last) { note.textContent=`Ultimo scarico VU: ${_fmt(last)}. Prossimo entro ${_fmt(deadline)}. Rimanenti: ${remaining} giorni.`; note.style.background='#e8f5e9'; note.style.color='#2e7d32'; }
+    else { note.textContent=`Primo scarico VU obbligatorio entro ${_fmt(deadline)}. Tempo rimanente: ${remaining} giorni.`; note.style.background='#fff8e1'; note.style.color='#b8860b'; }
   }
-  const ip = $('infoProssimoScarico');
-  if (ip) { ip.textContent = _fmt(nextDue); ip.style.color = isOver ? 'var(--red)' : ''; }
-
-  const pb = $('progBarScheda');
-  if (pb) { pb.style.width = Math.max(3, pct) + '%'; pb.className = `prog-bar ${color}`; }
-  const pl = $('progLabelScheda');
-  if (pl) {
-    pl.textContent = `${elapsed} / ${SCHEDA_MAX} giorni${isToday ? ' — scarico effettuato oggi' : isOver ? ' — SCADUTO' : ''}`;
-    pl.style.color = isOver ? 'var(--red)' : pct > 70 ? '#b8860b' : 'var(--green)';
-  }
-
-  const btn = $('btnRegistraScarico');
-  if (btn) {
-    if (isToday) {
-      btn.className = 'btn-primary green';
-      btn.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Scarico registrato — ${_fmt(today)}`;
-    } else {
-      btn.className = 'btn-primary';
-      btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg> Registra scarico oggi (${_fmt(today)})`;
-    }
-  }
+  const pill=$('vuPillStato');
+  if (pill) { if (isOver) { pill.className='pill pill-err'; pill.textContent='SCADUTO'; } else if (last) { pill.className='pill pill-ok'; pill.textContent='OK'; } else { pill.className='pill pill-off'; pill.textContent='Da scaricare'; } }
+  const btnVu=$('btnRegistraVu');
+  if (btnVu) { if (last && !isOver) { btnVu.className='btn-primary yellow'; btnVu.innerHTML=`<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> VU registrato — ${_fmt(last)}`; } else { btnVu.className=isOver?'btn-primary':'btn-primary yellow'; btnVu.innerHTML=`<svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> ${isOver?'SCADUTO — Registra scarico VU':'Registra scarico VU'}`; } }
+  const inpVu=$('inputDataVu'); if (inpVu && !inpVu.value) inpVu.value=last||today;
 }
 
 function registraScarico() {
-  const today = _today();
-  localStorage.setItem(SCHEDA_KEY, today);
-  updateSchedaUI();
-  showToast('Scarico scheda registrato — ' + _fmt(today));
+  const inp=$('inputDataScarico'); const dateVal=inp?inp.value:_today(); if (!dateVal) return;
+  localStorage.setItem(SCHEDA_KEY,dateVal); updateSchedaUI(dateVal);
+  if (_db) { _db.ref('tachigrafo/AC/schedaLast').set(dateVal).then(()=>showToast('Scarico scheda salvato — '+_fmt(dateVal))).catch(()=>showToast('Salvato localmente')); } else showToast('Scarico scheda registrato — '+_fmt(dateVal));
 }
 
-updateSchedaUI();
+function registraVu() {
+  const inp=$('inputDataVu'); const dateVal=inp?inp.value:_today(); if (!dateVal) return;
+  localStorage.setItem(VU_KEY,dateVal); updateVuUI(dateVal);
+  if (_db) { _db.ref('tachigrafo/AC/vuLast').set(dateVal).then(()=>showToast('Scarico VU salvato — '+_fmt(dateVal))).catch(()=>showToast('Salvato localmente')); } else showToast('Scarico VU registrato — '+_fmt(dateVal));
+}
+
+// Init: localStorage immediato, Firebase aggiorna
+updateSchedaUI(localStorage.getItem(SCHEDA_KEY)||null);
+updateVuUI(localStorage.getItem(VU_KEY)||null);
+_fbInit();
 // ──────────────────────────────────────────────────────────────
 
 function drawChart() {
