@@ -839,6 +839,13 @@ function registraVu() {
 // Init: localStorage immediato, Firebase aggiorna
 updateSchedaUI(localStorage.getItem(SCHEDA_KEY)||null);
 updateVuUI(localStorage.getItem(VU_KEY)||null);
+// migrazione: schedaLast esistente prima del fix history → aggiunge alla history
+(function(){
+  const last=localStorage.getItem(SCHEDA_KEY);
+  if(last){const h=_loadHist(SCHEDA_HIST_KEY);if(!h.includes(last)){h.push(last);_saveHist(SCHEDA_HIST_KEY,h);}}
+  const vuLast=localStorage.getItem(VU_KEY);
+  if(vuLast){const h=_loadHist(VU_HIST_KEY);if(!h.includes(vuLast)){h.push(vuLast);_saveHist(VU_HIST_KEY,h);}}
+})();
 renderStoricoHistory();
 _fbInit();
 // ──────────────────────────────────────────────────────────────
