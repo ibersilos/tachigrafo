@@ -663,9 +663,17 @@ function showToast(msg) {
 
 const BRIDGE = 'http://localhost:7891';
 const DRIVE_SCHEDA_FOLDER = '1F46F5LggGixfoV2e-M00SM4IQwTUYXzg'; // Drive: 13_TACHIGRAFO/SCHEDA_AC
-let _bridgeOnline = false;
+// Se la pagina è servita direttamente dal bridge, è sempre online
+const _servedFromBridge = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+let _bridgeOnline = _servedFromBridge;
 
 async function checkBridge() {
+  if (_servedFromBridge) {
+    _bridgeOnline = true;
+    document.getElementById('bridgeBanner').style.display = 'flex';
+    document.getElementById('bridgeOffline').style.display = 'none';
+    return; // già su localhost:7891, nessuna fetch necessaria
+  }
   try {
     const r = await fetch(`${BRIDGE}/status`, { signal: AbortSignal.timeout(1500) });
     const d = await r.json();
