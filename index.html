@@ -709,12 +709,12 @@ function _fbInit() {
       _db.ref('tachigrafo/AC/schedaLast').on('value', s => {
         const v = s.val();
         if (v) { localStorage.setItem(SCHEDA_KEY, v); updateSchedaUI(v); }
-        else updateSchedaUI(localStorage.getItem(SCHEDA_KEY) || null);
+        // Firebase null = nessun dato remoto, non sovrascrivere localStorage
       });
       _db.ref('tachigrafo/AC/vuLast').on('value', s => {
         const v = s.val();
         if (v) { localStorage.setItem(VU_KEY, v); updateVuUI(v); }
-        else updateVuUI(localStorage.getItem(VU_KEY) || null);
+        // Firebase null = nessun dato remoto, non sovrascrivere localStorage
       });
     }).catch(() => { updateSchedaUI(localStorage.getItem(SCHEDA_KEY)||null); updateVuUI(localStorage.getItem(VU_KEY)||null); });
   } catch(e) { updateSchedaUI(localStorage.getItem(SCHEDA_KEY)||null); updateVuUI(localStorage.getItem(VU_KEY)||null); }
