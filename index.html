@@ -28,8 +28,9 @@ body{background:var(--gray);color:var(--black);overflow-x:hidden;}
 .sync-bar.ok{background:var(--green);}
 @keyframes pulse-bar{0%,100%{opacity:1}50%{opacity:0.5}}
 @keyframes ledpulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.35)}}
-#bridgeLed{width:7px;height:7px;border-radius:50%;background:#ccc;flex-shrink:0;transition:background 0.4s;}
+#bridgeLed{width:7px;height:7px;border-radius:50%;background:#ccc;flex-shrink:0;transition:background 0.4s;cursor:pointer;}
 #bridgeLed.online{background:var(--green);animation:ledpulse 2s infinite;}
+#bridgeLed.connecting{background:var(--yellow);animation:ledpulse 0.6s infinite;}
 
 /* ── HEADER ── */
 .app-header{background:#fff;border-bottom:4px solid var(--red);border-top:4px solid var(--yellow);padding:14px 18px;box-shadow:0 2px 10px rgba(0,0,0,0.06);}
@@ -191,7 +192,7 @@ body{background:var(--gray);color:var(--black);overflow-x:hidden;}
       <div class="card-badge">
         <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
         Scheda tachigrafica
-        <span id="bridgeLed" title="Bridge offline"></span>
+        <span id="bridgeLed" title="Bridge offline" onclick="reconnectBridge()"></span>
       </div>
       <div class="date-display" id="dateDisplay"></div>
     </div>
@@ -675,7 +676,19 @@ function _setLed(online) {
   const led = document.getElementById('bridgeLed');
   if (!led) return;
   led.className = online ? 'online' : '';
-  led.title = online ? 'Bridge attivo' : 'Bridge offline';
+  led.title = online ? 'Bridge attivo — clicca per aggiornare' : 'Bridge offline — clicca per riconnettersi';
+}
+
+async function reconnectBridge() {
+  const led = document.getElementById('bridgeLed');
+  if (led) led.className = 'connecting';
+  await checkBridge();
+  if (!_bridgeOnline) {
+    // Apre http://localhost:7891/ se l'utente non ci è già
+    if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+      showToast('Bridge offline — apri http://localhost:7891/ per la lettura reale');
+    }
+  }
 }
 
 async function checkBridge() {
