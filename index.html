@@ -351,13 +351,20 @@ body{background:var(--gray);color:var(--black);overflow-x:hidden;}
   <!-- ═══ SCHEDA CONDUCENTE ═══ -->
   <div id="sezScheda" class="section">
 
+    <div id="bridgeBanner" style="display:none;background:#e8f5e9;border:1px solid var(--green);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:0.78rem;color:#2e7d32;font-weight:600;display:flex;align-items:center;gap:8px;">
+      <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--green);fill:none;stroke-width:2;flex-shrink:0;"><circle cx="12" cy="12" r="10"/><polyline points="20 6 9 17 4 12"/></svg>
+      <span id="bridgeBannerText">Bridge attivo — lettura reale</span>
+    </div>
+    <div id="bridgeOffline" style="background:#fff3e0;border:1px solid #ff9800;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:0.78rem;color:#e65100;font-weight:600;">
+      Bridge offline — avvia <code>node server.js</code> in <code>tachigrafo-bridge/</code>
+    </div>
     <div class="reader-box connected" id="readerBox">
       <div class="reader-icon">
         <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
       </div>
       <div class="reader-title" id="readerTitle">Lettore pronto</div>
       <div class="reader-sub" id="readerSub">ACS ACR122U — Porta 0</div>
-      <button class="btn-primary green" onclick="simRead()" style="margin-bottom:8px;">
+      <button class="btn-primary green" id="btnLeggiScheda" onclick="leggiScheda()" style="margin-bottom:8px;">
         <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
         Leggi scheda
       </button>
@@ -654,18 +661,76 @@ function showToast(msg) {
   _toT = setTimeout(() => el.style.display = 'none', 3000);
 }
 
-function simRead() {
+const BRIDGE = 'http://localhost:7891';
+const DRIVE_SCHEDA_FOLDER = '1F46F5LggGixfoV2e-M00SM4IQwTUYXzg'; // Drive: 13_TACHIGRAFO/SCHEDA_AC
+let _bridgeOnline = false;
+
+async function checkBridge() {
+  try {
+    const r = await fetch(`${BRIDGE}/status`, { signal: AbortSignal.timeout(1500) });
+    const d = await r.json();
+    _bridgeOnline = true;
+    document.getElementById('bridgeBanner').style.display = 'flex';
+    document.getElementById('bridgeOffline').style.display = 'none';
+    const readerName = d.reader || 'Reader';
+    document.getElementById('readerSub').textContent = readerName;
+    document.getElementById('bridgeBannerText').textContent = `Bridge attivo — ${readerName}${d.cardPresent ? ' — scheda inserita' : ''}`;
+    if (d.cardPresent) {
+      document.getElementById('readerBox').className = 'reader-box connected';
+      document.getElementById('readerTitle').textContent = 'Scheda rilevata';
+    }
+  } catch {
+    _bridgeOnline = false;
+    document.getElementById('bridgeBanner').style.display = 'none';
+    document.getElementById('bridgeOffline').style.display = 'block';
+  }
+}
+
+async function leggiScheda() {
   const box = document.getElementById('readerBox');
+  const btn = document.getElementById('btnLeggiScheda');
   box.className = 'reader-box reading';
   document.getElementById('readerTitle').textContent = 'Lettura in corso...';
   document.getElementById('readerSub').textContent = 'SELECT AID FF 54 41 43 48 4F...';
-  setTimeout(() => {
-    box.className = 'reader-box connected';
-    document.getElementById('readerTitle').textContent = 'Scheda letta';
-    document.getElementById('readerSub').textContent = 'Alessandro Chiarin — Scheda Conducente';
-    showToast('Scheda CONDUCENTE letta — AID VDO confermato');
-  }, 2200);
+  if (btn) { btn.disabled = true; btn.textContent = 'Lettura...'; }
+
+  if (_bridgeOnline) {
+    try {
+      const dateVal = document.getElementById('inputDataScarico')?.value || _today();
+      const r = await fetch(`${BRIDGE}/scarico/scheda`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date: dateVal, driveFolder: DRIVE_SCHEDA_FOLDER })
+      });
+      const d = await r.json();
+      if (!d.ok) throw new Error(d.error);
+      box.className = 'reader-box connected';
+      document.getElementById('readerTitle').textContent = 'Scheda scaricata';
+      document.getElementById('readerSub').textContent = `${d.filename} — ${d.bytes} byte — ${d.efCount} EF`;
+      showToast(`Scheda scaricata e archiviata su Drive — ${d.filename}`);
+      // registra automaticamente lo scarico
+      const inp = document.getElementById('inputDataScarico');
+      if (inp && !inp.value) inp.value = dateVal;
+      registraScarico();
+    } catch (e) {
+      box.className = 'reader-box';
+      document.getElementById('readerTitle').textContent = 'Errore lettura';
+      document.getElementById('readerSub').textContent = e.message;
+      showToast('Errore bridge: ' + e.message);
+    }
+  } else {
+    // sim fallback
+    setTimeout(() => {
+      box.className = 'reader-box connected';
+      document.getElementById('readerTitle').textContent = 'Scheda letta';
+      document.getElementById('readerSub').textContent = 'Alessandro Chiarin — Scheda Conducente';
+      showToast('Bridge offline — lettura simulata');
+    }, 2200);
+  }
+  if (btn) { btn.disabled = false; btn.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Leggi scheda'; }
 }
+
+function simRead() { leggiScheda(); }
 
 function ejectCard() {
   const box = document.getElementById('readerBox');
@@ -848,6 +913,8 @@ updateVuUI(localStorage.getItem(VU_KEY)||null);
 })();
 renderStoricoHistory();
 _fbInit();
+checkBridge();
+setInterval(checkBridge, 10000);
 // ──────────────────────────────────────────────────────────────
 
 function drawChart() {
